@@ -68,14 +68,14 @@
     </ul>
   </div>
 
+  <!-- THREE.JS CANVAS — single instance, fixed full-viewport, behind everything -->
+  <canvas id="threeCanvas" class="three-canvas"></canvas>
+
   <!-- ══════════════════════════════
-       SECTION 1 · HERO — 3D CHIP
+       SECTION 1 · HERO
   ══════════════════════════════ -->
   <section class="hero" id="hero">
     <div class="hero-bg-grid"></div>
-
-    <!-- THREE.JS CANVAS — full viewport, fixed behind content -->
-    <canvas id="threeCanvas" class="three-canvas"></canvas>
 
     <!-- Hero text -->
     <div class="hero-content" id="heroContent">
@@ -114,15 +114,10 @@
 
   <!-- ══════════════════════════════
        SECTION 2 · 3D CHIP SCROLLYTELLING
+       400vh tall — canvas stays fixed, chapters scroll over it
   ══════════════════════════════ -->
   <section class="explode-section" id="explodeSection">
-
-    <!-- The canvas stays sticky as user scrolls through chapters -->
-    <div class="three-sticky-wrap">
-      <canvas id="threeCanvas" class="three-canvas"></canvas>
-    </div>
-
-    <!-- Scroll chapters — text panels that scroll over the 3D scene -->
+    <!-- chapters-wrap scrolls; the fixed canvas renders behind it -->
     <div class="chapters-wrap">
 
       <div class="chapter" id="ch0">
