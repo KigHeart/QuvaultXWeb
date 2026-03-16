@@ -8,27 +8,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap');
-  </style>
-  <!-- Three.js r128 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- GSAP + ScrollTrigger -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </head>
 <body>
 
-  <!-- ── CUSTOM CURSOR ── -->
+  <!-- CURSOR -->
   <div class="cursor-dot" id="cursorDot"></div>
   <div class="cursor-ring" id="cursorRing"></div>
 
-  <!-- ── LOADING SCREEN ── -->
+  <!-- LOADER -->
   <div class="loader" id="loader">
     <div class="loader-inner">
-      <div class="loader-chip">
-        <div class="loader-grid"></div>
-      </div>
+      <div class="loader-chip"><div class="loader-grid"></div></div>
       <div class="loader-text">
         <span class="loader-brand">QuVaultX</span>
         <span class="loader-sub">Initializing cryptographic substrate…</span>
@@ -37,7 +30,7 @@
     </div>
   </div>
 
-  <!-- ── NAVIGATION ── -->
+  <!-- NAV -->
   <nav class="nav" id="nav">
     <div class="nav-logo">
       <span class="nav-logo-mark">⬡</span>
@@ -56,7 +49,7 @@
     </button>
   </nav>
 
-  <!-- ── MOBILE NAV ── -->
+  <!-- MOBILE NAV -->
   <div class="mobile-nav" id="mobileNav">
     <ul>
       <li><a href="#architecture" class="mob-link">Architecture</a></li>
@@ -68,41 +61,45 @@
     </ul>
   </div>
 
-  <!-- ══════════════════════════════
-       SECTION 1 · HERO — 3D CHIP
-  ══════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       HERO  —  full viewport, chip BEHIND text
+  ══════════════════════════════════════════ -->
   <section class="hero" id="hero">
-    <div class="hero-bg-grid"></div>
 
-    <!-- THREE.JS CANVAS — full viewport, fixed behind content -->
-    <canvas id="threeCanvas" class="three-canvas"></canvas>
+    <!-- 3D canvas lives here, fills the whole hero -->
+    <canvas id="threeCanvas"></canvas>
 
-    <!-- Hero text -->
-    <div class="hero-content" id="heroContent">
+    <!-- Scanline overlay -->
+    <div class="hero-scanline"></div>
+    <!-- Grid overlay -->
+    <div class="hero-grid"></div>
+
+    <!-- Text centred-left, readable over chip -->
+    <div class="hero-content">
       <div class="hero-eyebrow">
         <span class="hero-dot"></span>
-        Draft v0.2 · March 2026 · TSMC N5 FinFET
+        Draft v0.2 &nbsp;·&nbsp; March 2026 &nbsp;·&nbsp; TSMC N5 FinFET
       </div>
       <h1 class="hero-title">
-        <span class="hero-title-line">QuVaultX</span>
-        <span class="hero-title-sub" id="heroSubTitle">Programmable Cryptography</span>
+        <span class="ht-main">QuVaultX</span>
+        <span class="ht-sub" id="heroSubTitle">Programmable Cryptography</span>
       </h1>
       <p class="hero-desc">
-        From lattices to cryptomata — silicon foundations for<br />
+        From lattices to cryptomata — silicon foundations for<br>
         zero-knowledge proofs, homomorphic computation, and obfuscation.
       </p>
-      <div class="hero-actions">
+      <div class="hero-ctas">
         <a href="#explodeSection" class="btn-primary">Explore Architecture</a>
         <a href="#whitepaper" class="btn-ghost">Read White Paper</a>
       </div>
       <div class="hero-stats">
-        <div class="h-stat"><span class="h-stat-n">185</span><span class="h-stat-u">mm²</span><span class="h-stat-l">Die Area</span></div>
-        <div class="h-stat-div"></div>
-        <div class="h-stat"><span class="h-stat-n">5</span><span class="h-stat-u">pillars</span><span class="h-stat-l">Crypto Stack</span></div>
-        <div class="h-stat-div"></div>
-        <div class="h-stat"><span class="h-stat-n">55</span><span class="h-stat-u">W</span><span class="h-stat-l">Peak TDP</span></div>
-        <div class="h-stat-div"></div>
-        <div class="h-stat"><span class="h-stat-n">3.28</span><span class="h-stat-u">TB/s</span><span class="h-stat-l">HBM3 BW</span></div>
+        <div class="hs"><span class="hs-n">185</span><span class="hs-u">mm²</span><span class="hs-l">Die Area</span></div>
+        <div class="hs-div"></div>
+        <div class="hs"><span class="hs-n">5</span><span class="hs-u">pillars</span><span class="hs-l">Crypto Stack</span></div>
+        <div class="hs-div"></div>
+        <div class="hs"><span class="hs-n">55</span><span class="hs-u">W</span><span class="hs-l">Peak TDP</span></div>
+        <div class="hs-div"></div>
+        <div class="hs"><span class="hs-n">3.28</span><span class="hs-u">TB/s</span><span class="hs-l">HBM3 BW</span></div>
       </div>
     </div>
 
@@ -112,88 +109,90 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 2 · 3D CHIP SCROLLYTELLING
-  ══════════════════════════════ -->
-  <section class="explode-section" id="explodeSection">
+  <!-- ══════════════════════════════════════════
+       EXPLODE SECTION  —  600 vh scroll track
+       Canvas is position:fixed; text chapters
+       scroll over it as frosted cards.
+  ══════════════════════════════════════════ -->
+  <section id="explodeSection" class="explode-section">
 
-    <!-- The canvas stays sticky as user scrolls through chapters -->
-    <div class="three-sticky-wrap">
-      <canvas id="threeCanvas" class="three-canvas"></canvas>
-    </div>
-
-    <!-- Scroll chapters — text panels that scroll over the 3D scene -->
-    <div class="chapters-wrap">
+    <!-- Sticky viewport: holds the 6 chapter cards -->
+    <div class="explode-sticky" id="explodeSticky">
 
       <div class="chapter" id="ch0">
-        <div class="chapter-inner">
-          <div class="es-tag">Overview</div>
+        <div class="chapter-card">
+          <div class="chapter-tag">Overview</div>
           <h2>The Die</h2>
-          <p>QuVaultX-PC — <strong>185 mm²</strong> in TSMC N5 FinFET. Six stacked functional layers integrated over a UCIe 3.0 fabric at 64 GT/s connecting to the Ogopogo quad-core RISC-V manycore.</p>
+          <p>QuVaultX-PC — <strong>185 mm²</strong> in TSMC N5 FinFET. Six stacked functional layers integrated over a UCIe 3.0 fabric at 64 GT/s alongside the Ogopogo quad-core RISC-V manycore.</p>
         </div>
       </div>
 
       <div class="chapter" id="ch1">
-        <div class="chapter-inner">
-          <div class="es-tag">Core Architecture</div>
+        <div class="chapter-card">
+          <div class="chapter-tag">Core Architecture</div>
           <h2>Three Algebraic Kernels</h2>
-          <p>Every cryptographic operation reduces to <strong>polynomial NTT</strong>, <strong>multi-scalar multiplication</strong>, or <strong>hash evaluation</strong>. One shared Algebra Core serves all five subsystems — no duplication, full concurrency.</p>
+          <p>Every cryptographic operation reduces to <strong>polynomial NTT</strong>, <strong>multi-scalar multiplication</strong>, or <strong>hash evaluation</strong>. One shared Algebra Core serves all five subsystems with full concurrency.</p>
         </div>
       </div>
 
       <div class="chapter" id="ch2">
-        <div class="chapter-inner">
-          <div class="es-tag">Five Pillars</div>
+        <div class="chapter-card">
+          <div class="chapter-tag">Five Pillars</div>
           <h2>Full Stack in Silicon</h2>
-          <p><strong>ZKPE · FHES · MPCF · FEOE · CEU</strong> — the complete programmable cryptography stack on a single die. No other chiplet simultaneously targets all five layers of the hierarchy.</p>
+          <p><strong>ZKPE · FHES · MPCF · FEOE · CEU</strong> — the complete programmable cryptography stack on a single die. No other chiplet targets all five layers simultaneously.</p>
+          <p class="chapter-hint">Hover the glowing dots on the chip to inspect each pillar →</p>
         </div>
       </div>
 
       <div class="chapter" id="ch3">
-        <div class="chapter-inner">
-          <div class="es-tag">Security</div>
+        <div class="chapter-card">
+          <div class="chapter-tag">Security</div>
           <h2>Physical Root of Trust</h2>
           <p>The Key Lifecycle Vault provides <strong>CC EAL6+</strong> isolation, hardware TRNG, PUF identity, and anti-DPA masking. Emergency zeroisation within <strong>4 UCIe clock cycles</strong>.</p>
         </div>
       </div>
 
       <div class="chapter" id="ch4">
-        <div class="chapter-inner">
-          <div class="es-tag">Memory</div>
+        <div class="chapter-card">
+          <div class="chapter-tag">Memory</div>
           <h2>Memory Bandwidth</h2>
           <p>Four HBM3 channels deliver <strong>3.28 TB/s</strong> aggregate — fueling key material, witness data, ciphertext buffers, and MSM base tables simultaneously at full chip load.</p>
         </div>
       </div>
 
       <div class="chapter" id="ch5">
-        <div class="chapter-inner">
-          <div class="es-tag">Novel Architecture · CEU</div>
+        <div class="chapter-card">
+          <div class="chapter-tag">Novel Architecture · CEU</div>
           <h2>The Cryptomaton</h2>
           <p>A program that knows its own secrets — opaque even to the die that runs it. FHE-encrypted registers, oblivious branching, and ZK proofs of correct execution baked into silicon.</p>
-          <a href="#cryptomaton" class="btn-primary" style="margin-top:24px;display:inline-flex">Deep Dive →</a>
+          <a href="#cryptomaton" class="btn-primary" style="margin-top:20px;display:inline-flex">Deep Dive →</a>
         </div>
       </div>
 
     </div>
+    <!-- 600vh of scroll space (sticky div is 100vh, extra 500vh is the track) -->
+    <div style="height:500vh"></div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 3 · FIVE PILLARS
-  ══════════════════════════════ -->
+  <!-- X-Ray pillar info card (injected by JS) -->
+  <div id="pillarCard"></div>
+  <!-- Hotspot overlay (injected by JS) -->
+  <div id="hotspotLayer"></div>
+
+  <!-- ══════════════════════════════════════════
+       FIVE PILLARS
+  ══════════════════════════════════════════ -->
   <section class="pillars-section" id="pillars">
     <div class="section-header">
       <div class="section-tag">Architecture · Five Pillars</div>
       <h2 class="section-title">Programmable Cryptography Stack</h2>
       <p class="section-sub">Each pillar accelerates a distinct layer of the cryptographic hierarchy, from post-quantum standards to fully programmable trust.</p>
     </div>
-
     <div class="pillars-grid">
 
-      <div class="pillar-card" data-color="#00f5d4">
+      <div class="pillar-card" style="--c:#00f5d4">
         <div class="pillar-number">01</div>
-        <div class="pillar-icon">
-          <svg viewBox="0 0 48 48" fill="none"><polygon points="24,4 44,36 4,36" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="24" cy="24" r="6" fill="currentColor" opacity="0.3"/></svg>
-        </div>
+        <div class="pillar-icon"><svg viewBox="0 0 48 48" fill="none"><polygon points="24,4 44,36 4,36" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="24" r="6" fill="currentColor" opacity="0.3"/></svg></div>
         <h3 class="pillar-name">ZKPE</h3>
         <p class="pillar-full">Zero-Knowledge Proof Engine</p>
         <p class="pillar-desc">PLONK, Groth16, and Nova-class proof systems at 10× native computation overhead. 8 parallel MSM processing elements over BN254/BLS12-381.</p>
@@ -205,11 +204,9 @@
         <div class="pillar-glow"></div>
       </div>
 
-      <div class="pillar-card" data-color="#f72585">
+      <div class="pillar-card" style="--c:#f72585">
         <div class="pillar-number">02</div>
-        <div class="pillar-icon">
-          <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2"/></svg>
-        </div>
+        <div class="pillar-icon"><svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2"/></svg></div>
         <h3 class="pillar-name">FHES</h3>
         <p class="pillar-full">Fully Homomorphic Encryption Substrate</p>
         <p class="pillar-desc">Extended with verifiable-FHE gadgets, ORAM-backed secure memory, and blind rotation. 200× CPU speedup for CKKS bootstrapping.</p>
@@ -221,11 +218,9 @@
         <div class="pillar-glow"></div>
       </div>
 
-      <div class="pillar-card" data-color="#7209b7">
+      <div class="pillar-card" style="--c:#7209b7">
         <div class="pillar-number">03</div>
-        <div class="pillar-icon">
-          <svg viewBox="0 0 48 48" fill="none"><circle cx="12" cy="24" r="6" stroke="currentColor" stroke-width="2"/><circle cx="36" cy="12" r="6" stroke="currentColor" stroke-width="2"/><circle cx="36" cy="36" r="6" stroke="currentColor" stroke-width="2"/><path d="M18 24h12M33 17l-15 7M33 31l-15-7" stroke="currentColor" stroke-width="1.5" opacity="0.7"/></svg>
-        </div>
+        <div class="pillar-icon"><svg viewBox="0 0 48 48" fill="none"><circle cx="12" cy="24" r="6" stroke="currentColor" stroke-width="2"/><circle cx="36" cy="12" r="6" stroke="currentColor" stroke-width="2"/><circle cx="36" cy="36" r="6" stroke="currentColor" stroke-width="2"/><path d="M18 24h12M33 17l-15 7M33 31l-15-7" stroke="currentColor" stroke-width="1.5" opacity="0.7"/></svg></div>
         <h3 class="pillar-name">MPCF</h3>
         <p class="pillar-full">Multi-Party Computation Fabric</p>
         <p class="pillar-desc">Garbled-circuit and threshold-FHE protocols with intra-chiplet party isolation. 128M gates/s garbling, 256M gates/s evaluation.</p>
@@ -237,14 +232,12 @@
         <div class="pillar-glow"></div>
       </div>
 
-      <div class="pillar-card" data-color="#fb8500">
+      <div class="pillar-card" style="--c:#fb8500">
         <div class="pillar-number">04</div>
-        <div class="pillar-icon">
-          <svg viewBox="0 0 48 48" fill="none"><path d="M24 4L4 24l20 20 20-20L24 4z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="24" cy="24" r="4" fill="currentColor"/></svg>
-        </div>
+        <div class="pillar-icon"><svg viewBox="0 0 48 48" fill="none"><path d="M24 4L4 24l20 20 20-20L24 4z" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="24" cy="24" r="4" fill="currentColor"/></svg></div>
         <h3 class="pillar-name">FEOE</h3>
         <p class="pillar-full">Functional Encryption & Obfuscation Engine</p>
-        <p class="pillar-desc">Hardware-accelerated functional decryption, k-linear map arithmetic, and sandboxed indistinguishability-obfuscation execution. 50k pairings/s at 1.2GHz.</p>
+        <p class="pillar-desc">Hardware-accelerated functional decryption, k-linear map arithmetic, and sandboxed iO execution. 50k BLS12-381 pairings/s at 1.2 GHz.</p>
         <div class="pillar-metrics">
           <div class="pm"><span>FE.Dec depth-20</span><span>&lt;10ms</span></div>
           <div class="pm"><span>BLS12-381 pairing</span><span>50k/s</span></div>
@@ -253,14 +246,12 @@
         <div class="pillar-glow"></div>
       </div>
 
-      <div class="pillar-card pillar-card--wide" data-color="#06d6a0">
+      <div class="pillar-card pillar-card--wide" style="--c:#06d6a0">
         <div class="pillar-number">05</div>
-        <div class="pillar-icon">
-          <svg viewBox="0 0 48 48" fill="none"><path d="M8 40V20l16-12 16 12v20H8z" stroke="currentColor" stroke-width="2" fill="none"/><rect x="18" y="28" width="12" height="12" stroke="currentColor" stroke-width="2"/><path d="M24 28v-8" stroke="currentColor" stroke-width="2"/></svg>
-        </div>
+        <div class="pillar-icon"><svg viewBox="0 0 48 48" fill="none"><path d="M8 40V20l16-12 16 12v20H8z" stroke="currentColor" stroke-width="2" fill="none"/><rect x="18" y="28" width="12" height="12" stroke="currentColor" stroke-width="2"/><path d="M24 28v-8" stroke="currentColor" stroke-width="2"/></svg></div>
         <h3 class="pillar-name">CEU</h3>
         <p class="pillar-full">Cryptomaton Execution Unit</p>
-        <p class="pillar-desc">A novel microarchitecture for running non-interactive, privacy-preserving autonomous programs directly on silicon. FHE-encrypted registers, oblivious branching, and recursive ZK proofs of correct execution. Private state remains opaque even to the hosting die.</p>
+        <p class="pillar-desc">A novel microarchitecture for running non-interactive, privacy-preserving autonomous programs. FHE-encrypted registers, oblivious branching, and recursive ZK proofs of correct execution. Private state remains opaque even to the hosting die.</p>
         <div class="pillar-metrics">
           <div class="pm"><span>CEU step 100 gates</span><span>&lt;1ms</span></div>
           <div class="pm"><span>16-opcode ISA</span><span>encrypted</span></div>
@@ -273,70 +264,35 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 4 · CRYPTOMATON DEEP DIVE
-  ══════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       CRYPTOMATON
+  ══════════════════════════════════════════ -->
   <section class="cryptomaton-section" id="cryptomaton">
-    <div class="cryp-bg-anim" id="crypBg"></div>
     <div class="cryp-inner">
       <div class="section-tag" style="color:#06d6a0">Novel Architecture · CEU</div>
       <h2 class="section-title">The Cryptomaton</h2>
       <p class="section-sub">A program that knows its own secrets — opaque even to the machine that runs it.</p>
-
       <div class="cryp-flow">
-        <div class="cryp-node cryp-input">
-          <div class="cn-icon">⬡</div>
-          <div class="cn-label">Public Input x</div>
-          <div class="cn-sub">via UCIe</div>
-        </div>
+        <div class="cryp-node"><div class="cn-icon">⬡</div><div class="cn-label">Public Input x</div><div class="cn-sub">via UCIe</div></div>
         <div class="cryp-arrow">→</div>
-        <div class="cryp-node cryp-eps">
-          <div class="cn-icon">🔒</div>
-          <div class="cn-label">EPS</div>
-          <div class="cn-sub">Encrypted Program Store</div>
-        </div>
+        <div class="cryp-node"><div class="cn-icon">🔒</div><div class="cn-label">EPS</div><div class="cn-sub">Encrypted Program Store</div></div>
         <div class="cryp-arrow">→</div>
-        <div class="cryp-node cryp-psrf">
-          <div class="cn-icon">⚙</div>
-          <div class="cn-label">PSRF</div>
-          <div class="cn-sub">Opaque Private State</div>
-        </div>
+        <div class="cryp-node"><div class="cn-icon">⚙</div><div class="cn-label">PSRF</div><div class="cn-sub">Opaque Private State</div></div>
         <div class="cryp-arrow">→</div>
-        <div class="cryp-node cryp-out">
-          <div class="cn-icon">✓</div>
-          <div class="cn-label">FE-Encrypted Output</div>
-          <div class="cn-sub">+ ZK Proof of Correctness</div>
-        </div>
+        <div class="cryp-node"><div class="cn-icon">✓</div><div class="cn-label">FE-Encrypted Output</div><div class="cn-sub">+ ZK Proof</div></div>
       </div>
-
       <div class="cryp-guarantees">
-        <div class="cg-item">
-          <div class="cg-num">I</div>
-          <h4>Encrypted Program Store</h4>
-          <p>Instructions fetched and decrypted inside the secure EPS. Plaintext instructions never appear on any external bus.</p>
-        </div>
-        <div class="cg-item">
-          <div class="cg-num">II</div>
-          <h4>Opaque Private State</h4>
-          <p>256-entry register file maintained in LWE-encrypted form. Arithmetic operates on ciphertext. Decryption key held exclusively in the KLV — never exported.</p>
-        </div>
-        <div class="cg-item">
-          <div class="cg-num">III</div>
-          <h4>Oblivious Branching</h4>
-          <p>Branch targets computed via blind rotation — no control-flow leakage against the host fabric. Which path was taken remains cryptographically hidden.</p>
-        </div>
-        <div class="cg-item">
-          <div class="cg-num">IV</div>
-          <h4>Selective Decryptability</h4>
-          <p>Output ciphertexts carry function-specific keys from the FEOE. Only the designated recipient with skf can decrypt f(y) — a silicon realisation of FE semantics.</p>
-        </div>
+        <div class="cg-item"><div class="cg-num">I</div><h4>Encrypted Program Store</h4><p>Instructions decrypted inside secure EPS. Plaintext never appears on any external bus.</p></div>
+        <div class="cg-item"><div class="cg-num">II</div><h4>Opaque Private State</h4><p>256-entry register file in LWE-encrypted form. Decryption key held exclusively in KLV — never exported.</p></div>
+        <div class="cg-item"><div class="cg-num">III</div><h4>Oblivious Branching</h4><p>Branch targets computed via blind rotation — no control-flow leakage to the host fabric.</p></div>
+        <div class="cg-item"><div class="cg-num">IV</div><h4>Selective Decryptability</h4><p>Only the designated recipient with skf can decrypt f(y) — silicon realisation of FE semantics.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 5 · SPECS TABLE
-  ══════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       SPECS
+  ══════════════════════════════════════════ -->
   <section class="specs-section" id="specs">
     <div class="section-header">
       <div class="section-tag">Implementation · TSMC N5</div>
@@ -374,84 +330,40 @@
         </table>
       </div>
     </div>
-
-    <!-- Comparison radar / bar chart -->
     <div class="compare-section">
       <h3 class="compare-title">State-of-the-Art Comparison</h3>
       <div class="compare-grid">
-        <div class="compare-row compare-head">
-          <span>Design</span><span>PQC</span><span>FHE</span><span>ZK</span><span>MPC</span><span>FE/iO</span>
-        </div>
-        <div class="compare-row">
-          <span>Infineon TEGRION</span>
-          <span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span>
-        </div>
-        <div class="compare-row">
-          <span>Intel Heracles</span>
-          <span class="ci no">—</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span>
-        </div>
-        <div class="compare-row">
-          <span>CraterLake (MIT)</span>
-          <span class="ci no">—</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span>
-        </div>
-        <div class="compare-row">
-          <span>Cysic ZK ASIC</span>
-          <span class="ci no">—</span><span class="ci no">—</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span>
-        </div>
-        <div class="compare-row compare-row--highlight">
-          <span>QuVaultX-PC <em>(this work)</em></span>
-          <span class="ci yes">✓</span><span class="ci yes">✓</span><span class="ci yes">✓</span><span class="ci yes">✓</span><span class="ci yes">✓*</span>
-        </div>
+        <div class="compare-row compare-head"><span>Design</span><span>PQC</span><span>FHE</span><span>ZK</span><span>MPC</span><span>FE/iO</span></div>
+        <div class="compare-row"><span>Infineon TEGRION</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span></div>
+        <div class="compare-row"><span>Intel Heracles</span><span class="ci no">—</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span></div>
+        <div class="compare-row"><span>CraterLake (MIT)</span><span class="ci no">—</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci no">—</span></div>
+        <div class="compare-row"><span>Cysic ZK ASIC</span><span class="ci no">—</span><span class="ci no">—</span><span class="ci yes">✓</span><span class="ci no">—</span><span class="ci no">—</span></div>
+        <div class="compare-row compare-row--highlight"><span>QuVaultX-PC <em>(this work)</em></span><span class="ci yes">✓</span><span class="ci yes">✓</span><span class="ci yes">✓</span><span class="ci yes">✓</span><span class="ci yes">✓*</span></div>
       </div>
       <p class="compare-note">*Bilinear FE fully practical; trilinear/iO sandbox pending cryptographic maturity of k-linear map constructions.</p>
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 6 · OPEN-SOURCE ROADMAP
-  ══════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       ROADMAP
+  ══════════════════════════════════════════ -->
   <section class="roadmap-section" id="roadmap">
     <div class="section-header">
       <div class="section-tag">Open Source · Apache 2.0</div>
       <h2 class="section-title">Development Roadmap</h2>
     </div>
     <div class="roadmap-timeline">
-      <div class="rt-item">
-        <div class="rt-phase">Phase 1</div>
-        <div class="rt-months">Months 1–12</div>
-        <h4>RTL Release</h4>
-        <p>Apache 2.0 release of the ZKPE MSM engine (BN254/BLS12-381), the shared Poseidon accelerator, and the CEU FSM skeleton.</p>
-      </div>
-      <div class="rt-item">
-        <div class="rt-phase">Phase 2</div>
-        <div class="rt-months">Months 6–18</div>
-        <h4>Simulation</h4>
-        <p>Verilator-compatible testbench. NIST PQC test vectors. Circom-generated PLONK verification circuits. CKKS verifiable-FHE end-to-end tests.</p>
-      </div>
-      <div class="rt-item">
-        <div class="rt-phase">Phase 3</div>
-        <div class="rt-months">Months 12–24</div>
-        <h4>FPGA Prototype</h4>
-        <p>MPCF garbled circuit engine and FEOE bilinear pairing unit on Xilinx Alveo U250. ZK proof generation benchmarks vs Cysic and GPU baselines.</p>
-      </div>
-      <div class="rt-item">
-        <div class="rt-phase">Phase 4</div>
-        <div class="rt-months">Months 18–36</div>
-        <h4>ASIC Demonstrator</h4>
-        <p>Integration into PULP platform. Tape-out of ZKPE + FEOE bilinear unit in IHP 130 nm as community demonstrator.</p>
-      </div>
-      <div class="rt-item">
-        <div class="rt-phase">Phase 5</div>
-        <div class="rt-months">TBD</div>
-        <h4>CEU & iO Sandbox</h4>
-        <p>CEU hardware released when k-linear map sandbox validated against peer-reviewed trilinear map construction. KLV firmware proprietary pending CC EAL6+ evaluation.</p>
-      </div>
+      <div class="rt-item"><div class="rt-phase">Phase 1</div><div class="rt-months">Months 1–12</div><h4>RTL Release</h4><p>Apache 2.0 release of the ZKPE MSM engine (BN254/BLS12-381), the shared Poseidon accelerator, and the CEU FSM skeleton.</p></div>
+      <div class="rt-item"><div class="rt-phase">Phase 2</div><div class="rt-months">Months 6–18</div><h4>Simulation</h4><p>Verilator-compatible testbench. NIST PQC test vectors. Circom-generated PLONK verification circuits. CKKS verifiable-FHE end-to-end tests.</p></div>
+      <div class="rt-item"><div class="rt-phase">Phase 3</div><div class="rt-months">Months 12–24</div><h4>FPGA Prototype</h4><p>MPCF garbled circuit engine and FEOE bilinear pairing unit on Xilinx Alveo U250. ZK proof generation benchmarks.</p></div>
+      <div class="rt-item"><div class="rt-phase">Phase 4</div><div class="rt-months">Months 18–36</div><h4>ASIC Demonstrator</h4><p>Integration into PULP platform. Tape-out of ZKPE + FEOE bilinear unit in IHP 130 nm as community demonstrator.</p></div>
+      <div class="rt-item"><div class="rt-phase">Phase 5</div><div class="rt-months">TBD</div><h4>CEU & iO Sandbox</h4><p>CEU hardware released when k-linear map sandbox validated against peer-reviewed trilinear map construction.</p></div>
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 7 · WHITE PAPER
-  ══════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       WHITE PAPER
+  ══════════════════════════════════════════ -->
   <section class="whitepaper-section" id="whitepaper">
     <div class="wp-inner">
       <div class="wp-left">
@@ -459,13 +371,11 @@
         <h2 class="section-title">White Paper</h2>
         <p>QuVaultX-PC: A Programmable Cryptography Chiplet Architecture — From Lattices to Cryptomata, Silicon Foundations for Zero-Knowledge, Homomorphic Computation, and Obfuscation.</p>
         <p class="wp-author">Kiprop Yego — Independent Research | Chiplet Security Systems | QuVaultX</p>
-        <a href="quvaultx_progcrypto.pdf" target="_blank" class="btn-primary wp-btn">Download White Paper PDF</a>
+        <a href="quvaultx_progcrypto.pdf" target="_blank" class="btn-primary" style="margin-top:24px">Download White Paper PDF</a>
       </div>
       <div class="wp-right">
         <div class="wp-card">
-          <div class="wp-card-header">
-            <span class="wc-tag">Abstract</span>
-          </div>
+          <div class="wc-tag">Abstract</div>
           <p>We present QuVaultX-PC, a five-pillar silicon architecture that accelerates the full hierarchy of modern cryptographic machinery: from NIST post-quantum standards to ZK proofs, FHE, MPC, functional encryption, and the novel Cryptomaton Execution Unit — a microarchitecture for running non-interactive, privacy-preserving autonomous programs directly on silicon.</p>
           <div class="wp-refs">
             <div class="ref-item">0xPARC Programmable Cryptography Framework</div>
@@ -478,44 +388,27 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       SECTION 8 · CONTACT / COLLABORATE
-  ══════════════════════════════ -->
+  <!-- ══════════════════════════════════════════
+       CONTACT
+  ══════════════════════════════════════════ -->
   <section class="contact-section" id="contact">
     <div class="contact-inner">
       <div class="section-tag">Collaboration</div>
       <h2 class="section-title">Build the Future of Programmable Trust</h2>
-      <p class="section-sub">We invite collaboration from the open-source hardware community, ZK toolchain ecosystem (Circom, Halo2, Nova), FHE open-source community (OpenFHE, TFHE-rs), and advanced foundry partners.</p>
+      <p class="section-sub">We invite collaboration from the open-source hardware community, ZK toolchain ecosystem, FHE open-source community, and advanced foundry partners.</p>
       <div class="contact-grid">
-        <div class="contact-card">
-          <div class="cc-icon">⬡</div>
-          <h4>Research Collaboration</h4>
-          <p>ZK proof systems, FHE bootstrapping, k-linear map constructions</p>
-        </div>
-        <div class="contact-card">
-          <div class="cc-icon">◈</div>
-          <h4>Open-Source Hardware</h4>
-          <p>RTL contributions, FPGA prototyping, simulation testbenches</p>
-        </div>
-        <div class="contact-card">
-          <div class="cc-icon">◆</div>
-          <h4>Foundry & Tape-out</h4>
-          <p>Advanced process partners, 2.5D integration, chiplet ecosystem</p>
-        </div>
+        <div class="contact-card"><div class="cc-icon">⬡</div><h4>Research Collaboration</h4><p>ZK proof systems, FHE bootstrapping, k-linear map constructions</p></div>
+        <div class="contact-card"><div class="cc-icon">◈</div><h4>Open-Source Hardware</h4><p>RTL contributions, FPGA prototyping, simulation testbenches</p></div>
+        <div class="contact-card"><div class="cc-icon">◆</div><h4>Foundry & Tape-out</h4><p>Advanced process partners, 2.5D integration, chiplet ecosystem</p></div>
       </div>
-      <a href="mailto:kiprop.yego@quvaultx.dev" class="btn-primary contact-cta">kiprop.yego@quvaultx.dev</a>
+      <a href="mailto:kiprop.yego@quvaultx.dev" class="btn-primary" style="margin-top:8px">kiprop.yego@quvaultx.dev</a>
     </div>
   </section>
 
-  <!-- ══════════════════════════════
-       FOOTER
-  ══════════════════════════════ -->
+  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-inner">
-      <div class="footer-brand">
-        <span class="nav-logo-mark">⬡</span>
-        <span>QuVaultX</span>
-      </div>
+      <div class="footer-brand"><span class="nav-logo-mark">⬡</span><span>QuVaultX</span></div>
       <p class="footer-copy">Conceptual Architecture White Paper · Draft v0.2 · March 2026 · Kiprop Yego</p>
       <p class="footer-copy">Independent Research | Chiplet Security Systems | QuVaultX</p>
       <div class="footer-links">

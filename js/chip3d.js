@@ -1,447 +1,397 @@
 /**
- * QuVaultX-PC — 3D Chip Scene
- * Three.js r128 + GSAP ScrollTrigger
- *
- * Architecture:
- *  - 6 chip layers built from BoxGeometry (no .glb needed)
- *  - Top face of each layer gets the chip photo as texture
- *  - Camera: OrthographicCamera + slight perspective tilt
- *  - GSAP ScrollTrigger scrubs: layer separation Y, camera orbit, bloom glow
- *  - Each scroll "chapter" highlights a different layer with emissive color
+ * QuVaultX-PC — chip3d.js  v5 (CLEAN)
+ * ────────────────────────────────────
+ * • Single canvas #threeCanvas inside .hero — fills it completely
+ * • 6 chip layers centred in frame, chip photo mapped to top face
+ * • GSAP ScrollTrigger scrubs the explode animation
+ * • Pillar hotspot dots projected to screen, hover shows X-ray card
  */
-
 (function () {
   "use strict";
+  if (typeof THREE === "undefined") { console.warn("[chip3d] Three.js missing"); return; }
 
-  /* ── Guard: only run if Three.js loaded ── */
-  if (typeof THREE === "undefined") {
-    console.warn("Three.js not loaded — 3D chip scene skipped");
-    return;
-  }
-
-  /* ════════════════════════════════
-     CONSTANTS & CONFIG
-  ════════════════════════════════ */
-  const LAYER_W  = 3.2;
-  const LAYER_D  = 3.2;
-  const LAYER_H  = 0.18;
-  const GAP_BASE = 0.04;   // resting gap between layers
-  const GAP_MAX  = 0.9;    // fully exploded gap
-
-  // Layer definitions (bottom → top)
-  const LAYERS = [
-    { name: "HBM3 · 32 GiB",           color: 0x06d6a0, emissive: 0x023d2c, w: LAYER_W * 1.15, d: LAYER_D * 1.15, h: LAYER_H * 0.7 },
-    { name: "UCIe 3.0 PHY",             color: 0x00f5d4, emissive: 0x003d38, w: LAYER_W * 1.05, d: LAYER_D * 1.05, h: LAYER_H * 0.5 },
-    { name: "Shared Algebra Core",      color: 0x7209b7, emissive: 0x1a0040, w: LAYER_W,        d: LAYER_D,        h: LAYER_H },
-    { name: "Five Crypto Pillars",      color: 0xfb8500, emissive: 0x3d2000, w: LAYER_W,        d: LAYER_D,        h: LAYER_H * 1.2 },
-    { name: "Key Lifecycle Vault",      color: 0xf72585, emissive: 0x3d0020, w: LAYER_W * 0.9,  d: LAYER_D * 0.9,  h: LAYER_H },
-    { name: "Cryptomaton Exec Unit",    color: 0xe8f4f8, emissive: 0x102030, w: LAYER_W * 0.85, d: LAYER_D * 0.85, h: LAYER_H * 0.8 },
+  /* ──────────────────────────────────
+     LAYER DATA  (bottom=0 → top=5)
+  ────────────────────────────────── */
+  const L = [
+    { name:"HBM3 Memory",         tag:"3.28 TB/s · 32 GiB",           hex:"#06d6a0", c:0x06d6a0, e:0x012418, W:4.0,D:4.0,H:0.13 },
+    { name:"UCIe 3.0 PHY",        tag:"64 GT/s · 512 Gb/s bidir",      hex:"#00c9b0", c:0x00c9b0, e:0x002820, W:3.7,D:3.7,H:0.10 },
+    { name:"Shared Algebra Core", tag:"NTT×16 · MSM×8 · Hash/XOF",    hex:"#7209b7", c:0x7209b7, e:0x180030, W:3.3,D:3.3,H:0.16 },
+    { name:"Five Crypto Pillars", tag:"ZKPE · FHES · MPCF · FEOE · CEU",hex:"#fb8500",c:0xfb8500,e:0x2a1500, W:3.3,D:3.3,H:0.22 },
+    { name:"Key Lifecycle Vault", tag:"CC EAL6+ · TRNG · PUF",         hex:"#f72585", c:0xf72585, e:0x300010, W:2.9,D:2.9,H:0.12 },
+    { name:"Cryptomaton CEU",     tag:"FHE Registers · ZK Proof Output",hex:"#e0f0ff",c:0xe0f0ff,e:0x0a1828, W:2.7,D:2.7,H:0.10 },
   ];
 
-  // Which layer gets highlighted per scroll chapter
-  const CHAPTER_HIGHLIGHT = [null, 2, 3, 4, 0, 5];
+  const GAP   = 0.02;   // resting gap between layers
+  const EXPL  = 0.80;   // extra Y separation per layer when fully exploded
 
-  /* ════════════════════════════════
-     SCENE SETUP
-  ════════════════════════════════ */
+  /* ──────────────────────────────────
+     REST POSITIONS  (stacked)
+  ────────────────────────────────── */
+  let stackY = 0;
+  const restY = L.map(l => { const y = stackY + l.H/2; stackY += l.H + GAP; return y; });
+  const stackMid = stackY / 2;
+
+  /* ──────────────────────────────────
+     RENDERER
+  ────────────────────────────────── */
   const canvas = document.getElementById("threeCanvas");
   if (!canvas) return;
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
-  });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.15;
 
   const scene = new THREE.Scene();
-  scene.background = null; // transparent — CSS bg shows through
 
-  /* ── Camera ── */
-  const aspect = canvas.clientWidth / canvas.clientHeight;
-  const camera = new THREE.PerspectiveCamera(38, aspect, 0.1, 100);
-  camera.position.set(0, 4.5, 6);
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 200);
+  camera.position.set(0, 3.5, 8.5);
   camera.lookAt(0, 0, 0);
 
-  /* ── Lighting ── */
-  const ambient = new THREE.AmbientLight(0x102030, 0.6);
-  scene.add(ambient);
-
-  const keyLight = new THREE.DirectionalLight(0x00f5d4, 1.8);
-  keyLight.position.set(4, 8, 4);
-  keyLight.castShadow = true;
-  keyLight.shadow.mapSize.width  = 1024;
-  keyLight.shadow.mapSize.height = 1024;
-  scene.add(keyLight);
-
-  const fillLight = new THREE.DirectionalLight(0xf72585, 0.6);
-  fillLight.position.set(-4, 3, -2);
-  scene.add(fillLight);
-
-  const rimLight = new THREE.DirectionalLight(0x7209b7, 0.4);
-  rimLight.position.set(0, -4, -6);
-  scene.add(rimLight);
-
-  // Point lights for glow effect per layer
-  const layerPoints = LAYERS.map((l, i) => {
-    const pt = new THREE.PointLight(l.color, 0, 3);
-    pt.position.y = i * (LAYER_H + GAP_BASE);
-    scene.add(pt);
-    return pt;
-  });
-
-  /* ════════════════════════════════
-     CHIP PHOTO TEXTURE
-  ════════════════════════════════ */
-  const textureLoader = new THREE.TextureLoader();
-  let chipTexture = null;
-
-  // Load texture async — materials update when ready
-  textureLoader.load(
-    "quvaultX.png",
-    (tex) => {
-      tex.encoding = THREE.sRGBEncoding;
-      chipTexture = tex;
-      // Apply to top face of the top layer
-      if (layerMeshes.length > 0) {
-        const topMesh = layerMeshes[layerMeshes.length - 1];
-        // Material index 2 = +Y face on BoxGeometry
-        topMesh.material[2] = new THREE.MeshStandardMaterial({
-          map: chipTexture,
-          roughness: 0.2,
-          metalness: 0.8,
-          emissiveMap: chipTexture,
-          emissive: new THREE.Color(0x001a2e),
-          emissiveIntensity: 0.15,
-        });
-      }
-    },
-    undefined,
-    () => { /* silently use fallback material if image fails */ }
-  );
-
-  /* ════════════════════════════════
-     BUILD CHIP LAYERS
-  ════════════════════════════════ */
-  const layerMeshes = [];
-  const layerGroup  = new THREE.Group();
-  scene.add(layerGroup);
-
-  // Helper: build 6-material array for a box (each face can differ)
-  function makeLayerMaterials(layerDef, isTop) {
-    const sideMat = new THREE.MeshStandardMaterial({
-      color:     layerDef.color,
-      emissive:  layerDef.emissive,
-      roughness: 0.35,
-      metalness: 0.85,
-      envMapIntensity: 1,
-    });
-    const bottomMat = new THREE.MeshStandardMaterial({
-      color:     0x050b12,
-      roughness: 0.8,
-      metalness: 0.3,
-    });
-    // Top face: circuit-board like procedural texture or chip photo on top layer
-    const topMat = new THREE.MeshStandardMaterial({
-      color:     isTop ? 0x1a3040 : layerDef.color,
-      emissive:  isTop ? 0x001020 : layerDef.emissive,
-      roughness: 0.15,
-      metalness: 0.95,
-    });
-
-    // BoxGeometry face order: +X, -X, +Y, -Y, +Z, -Z
-    return [sideMat, sideMat, topMat, bottomMat, sideMat, sideMat];
-  }
-
-  LAYERS.forEach((layerDef, i) => {
-    const geo = new THREE.BoxGeometry(layerDef.w, layerDef.h, layerDef.d);
-    const mats = makeLayerMaterials(layerDef, i === LAYERS.length - 1);
-    const mesh = new THREE.Mesh(geo, mats);
-    mesh.castShadow    = true;
-    mesh.receiveShadow = true;
-
-    // Resting Y position (stacked)
-    const restY = i * (LAYER_H + GAP_BASE);
-    mesh.position.y = restY;
-    mesh.userData.restY    = restY;
-    mesh.userData.layerIdx = i;
-    mesh.userData.layerDef = layerDef;
-
-    layerGroup.add(mesh);
-    layerMeshes.push(mesh);
-  });
-
-  // Add circuit trace lines on each layer's top face
-  LAYERS.forEach((layerDef, i) => {
-    const traceGroup = new THREE.Group();
-    traceGroup.position.y = layerMeshes[i].position.y + layerDef.h / 2 + 0.001;
-
-    const traceMat = new THREE.LineBasicMaterial({
-      color: layerDef.color,
-      transparent: true,
-      opacity: 0.25,
-    });
-
-    // Grid lines
-    const hw = layerDef.w / 2;
-    const hd = layerDef.d / 2;
-    const steps = 8;
-    const points = [];
-
-    for (let s = 0; s <= steps; s++) {
-      const t = -hw + (s / steps) * layerDef.w;
-      points.push(
-        new THREE.Vector3(t, 0, -hd),
-        new THREE.Vector3(t, 0,  hd),
-        new THREE.Vector3(-hw, 0, t * (hd / hw)),
-        new THREE.Vector3( hw, 0, t * (hd / hw)),
-      );
-    }
-
-    const geom = new THREE.BufferGeometry().setFromPoints(points);
-    traceGroup.add(new THREE.LineSegments(geom, traceMat));
-    layerGroup.add(traceGroup);
-    layerMeshes[i].userData.traceGroup = traceGroup;
-  });
-
-  // Label sprites (canvas-based, so no font file needed)
-  function makeLabel(text, color) {
-    const c = document.createElement("canvas");
-    c.width = 512; c.height = 80;
-    const cx = c.getContext("2d");
-    cx.clearRect(0, 0, 512, 80);
-    cx.fillStyle = "rgba(2,4,8,0.85)";
-    cx.fillRect(0, 0, 512, 80);
-    cx.strokeStyle = color;
-    cx.lineWidth = 2;
-    cx.strokeRect(1, 1, 510, 78);
-    cx.fillStyle = color;
-    cx.font = "bold 28px 'Orbitron', 'Courier New', monospace";
-    cx.textAlign = "center";
-    cx.textBaseline = "middle";
-    cx.fillText(text, 256, 40);
-    const tex  = new THREE.CanvasTexture(c);
-    const mat  = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0 });
-    const spr  = new THREE.Sprite(mat);
-    spr.scale.set(2.4, 0.38, 1);
-    return spr;
-  }
-
-  const labelSprites = LAYERS.map((l, i) => {
-    const hex = "#" + l.color.toString(16).padStart(6, "0");
-    const spr = makeLabel(l.name, hex);
-    spr.position.set(layerDef_x_offset(i), layerMeshes[i].position.y + l.h / 2 + 0.3, 0);
-    spr.userData.layerIdx = i;
-    scene.add(spr);
-    return spr;
-  });
-
-  function layerDef_x_offset(i) {
-    // Alternate left/right per layer
-    return (i % 2 === 0) ? -2.4 : 2.4;
-  }
-
-  /* ════════════════════════════════
-     PARTICLES (floating data points)
-  ════════════════════════════════ */
-  const particleCount = 200;
-  const pPositions    = new Float32Array(particleCount * 3);
-  const pColors       = new Float32Array(particleCount * 3);
-  const particlePalette = [
-    new THREE.Color(0x00f5d4),
-    new THREE.Color(0xf72585),
-    new THREE.Color(0x7209b7),
-    new THREE.Color(0x06d6a0),
-  ];
-
-  for (let i = 0; i < particleCount; i++) {
-    pPositions[i * 3]     = (Math.random() - 0.5) * 10;
-    pPositions[i * 3 + 1] = (Math.random() - 0.5) * 8;
-    pPositions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-    const c = particlePalette[Math.floor(Math.random() * particlePalette.length)];
-    pColors[i * 3] = c.r; pColors[i * 3 + 1] = c.g; pColors[i * 3 + 2] = c.b;
-  }
-
-  const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute("position", new THREE.BufferAttribute(pPositions, 3));
-  pGeo.setAttribute("color",    new THREE.BufferAttribute(pColors,    3));
-
-  const pMat = new THREE.PointsMaterial({
-    size: 0.04,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.6,
-    sizeAttenuation: true,
-  });
-
-  const particles = new THREE.Points(pGeo, pMat);
-  scene.add(particles);
-
-  /* ════════════════════════════════
-     GSAP SCROLL TRIGGER SETUP
-  ════════════════════════════════ */
-  if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
-    console.warn("GSAP/ScrollTrigger not loaded — scroll animation skipped");
-  } else {
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Shared animated state object
-    const state = {
-      explode:   0,      // 0 = stacked, 1 = fully exploded
-      rotY:      0,      // layerGroup Y rotation
-      rotX:      -0.18,  // layerGroup X rotation (tilt)
-      camY:      4.5,
-      camZ:      6,
-      highlight: -1,     // index of highlighted layer (-1 = none)
-    };
-
-    // Master timeline scrubbed by scroll
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger:  "#explodeSection",
-        start:    "top top",
-        end:      "bottom bottom",
-        scrub:    1.2,
-        pin:      false,
-      },
-    });
-
-    // Chapter 0→1: layers begin to separate, slight rotation
-    tl.to(state, { explode: 0.3, rotY:  0.4, duration: 1 }, 0)
-    // Chapter 1→2: full explode, rotate to show side
-      .to(state, { explode: 1.0, rotY:  0.8, rotX: -0.08, camY: 3, camZ: 7, duration: 2 }, 1)
-    // Chapter 2→3: rotate around, focus KLV
-      .to(state, { rotY: -0.4, rotX: 0.05, camY: 2, camZ: 5.5, duration: 1.5 }, 3)
-    // Chapter 3→4: tilt down to look at HBM layer
-      .to(state, { explode: 0.4, rotY: 0.1, rotX: 0.6,  camY: 6, camZ: 4, duration: 1.5 }, 4.5)
-    // Chapter 4→5: reassemble, zoom into CEU top face
-      .to(state, { explode: 0,   rotY: 0,   rotX: -0.4, camY: 5, camZ: 4, duration: 1.5 }, 6);
-
-    // Chapter highlight triggers (separate ScrollTriggers per chapter)
-    const chapterEls = document.querySelectorAll(".explode-step");
-    chapterEls.forEach((el, i) => {
-      ScrollTrigger.create({
-        trigger: el.closest(".explode-section") || "#explodeSection",
-        start:   `${i * 20}% top`,
-        end:     `${(i + 1) * 20}% top`,
-        onEnter:      () => { state.highlight = CHAPTER_HIGHLIGHT[i] ?? -1; },
-        onEnterBack:  () => { state.highlight = CHAPTER_HIGHLIGHT[i] ?? -1; },
-      });
-    });
-  }
-
-  /* ════════════════════════════════
-     ANIMATION LOOP
-  ════════════════════════════════ */
-  // Shared state (fallback if GSAP not loaded)
-  const state = window._qvxState || {
-    explode: 0, rotY: 0, rotX: -0.18,
-    camY: 4.5, camZ: 6, highlight: -1,
-  };
-  window._qvxState = state;
-
-  let time = 0;
-
-  function animate() {
-    requestAnimationFrame(animate);
-    time += 0.008;
-
-    /* ── Apply explode positions ── */
-    const totalH = LAYERS.reduce((s, l) => s + l.h + GAP_BASE, 0);
-    const centerY = totalH / 2;
-
-    layerMeshes.forEach((mesh, i) => {
-      const targetY = mesh.userData.restY + i * state.explode * GAP_MAX;
-      mesh.position.y += (targetY - mesh.position.y) * 0.08;
-
-      // Update trace group Y
-      if (mesh.userData.traceGroup) {
-        mesh.userData.traceGroup.position.y =
-          mesh.position.y + LAYERS[i].h / 2 + 0.001;
-      }
-
-      // Highlight glow
-      const isHL  = (i === state.highlight);
-      const tgt   = isHL ? 2.5 : 0;
-      layerPoints[i].intensity += (tgt - layerPoints[i].intensity) * 0.06;
-      layerPoints[i].position.y = mesh.position.y;
-
-      // Emissive pulse on highlighted layer
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((mat) => {
-          if (mat && mat.emissiveIntensity !== undefined) {
-            const baseEI = isHL ? 0.6 + Math.sin(time * 3) * 0.2 : 0.05;
-            mat.emissiveIntensity += (baseEI - mat.emissiveIntensity) * 0.05;
-          }
-        });
-      }
-    });
-
-    // Centre the group vertically
-    layerGroup.position.y = -centerY * 0.5 - state.explode * GAP_MAX * 1.5;
-
-    /* ── Apply rotation ── */
-    layerGroup.rotation.y += (state.rotY - layerGroup.rotation.y) * 0.05;
-    layerGroup.rotation.x += (state.rotX - layerGroup.rotation.x) * 0.05;
-
-    // Gentle idle rotation when not scrolling
-    if (Math.abs(state.explode) < 0.05) {
-      layerGroup.rotation.y += 0.003;
-    }
-
-    /* ── Camera ── */
-    camera.position.y += (state.camY - camera.position.y) * 0.04;
-    camera.position.z += (state.camZ - camera.position.z) * 0.04;
-    camera.lookAt(0, 0, 0);
-
-    /* ── Labels ── */
-    labelSprites.forEach((spr, i) => {
-      const mesh   = layerMeshes[i];
-      const targetX = layerDef_x_offset(i);
-      spr.position.x = targetX;
-      spr.position.y = mesh.position.y + LAYERS[i].h / 2 + 0.35 + layerGroup.position.y;
-      const targetO  = state.explode > 0.3 ? 1 : 0;
-      spr.material.opacity += (targetO - spr.material.opacity) * 0.05;
-    });
-
-    /* ── Particles drift ── */
-    particles.rotation.y  = time * 0.04;
-    particles.rotation.x  = time * 0.02;
-    pMat.opacity = 0.3 + state.explode * 0.4;
-
-    renderer.render(scene, camera);
-  }
-
-  animate();
-
-  /* ── Resize handler ── */
   function onResize() {
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
+    // Canvas fills its parent (.hero) which is 100vw × 100vh
+    const w = canvas.clientWidth || window.innerWidth;
+    const h = canvas.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
   window.addEventListener("resize", onResize);
 
-  /* ── Mouse parallax on desktop ── */
-  document.addEventListener("mousemove", (e) => {
-    if (state.explode > 0.1) return; // only when stacked
-    const nx = (e.clientX / window.innerWidth  - 0.5) * 2;
-    const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-    gsap && gsap.to(layerGroup.rotation, {
-      y: nx * 0.3,
-      x: -0.18 + ny * 0.1,
-      duration: 1.5,
-      ease: "power2.out",
-      overwrite: "auto",
+  /* ──────────────────────────────────
+     LIGHTS
+  ────────────────────────────────── */
+  scene.add(new THREE.AmbientLight(0x0d1f2d, 1.0));
+
+  const key = new THREE.DirectionalLight(0x00f5d4, 2.4);
+  key.position.set(5, 10, 6); key.castShadow = true;
+  key.shadow.mapSize.setScalar(1024);
+  scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0xf72585, 0.7);
+  fill.position.set(-6, 3, -4); scene.add(fill);
+
+  const back = new THREE.DirectionalLight(0x7209b7, 0.35);
+  back.position.set(0,-5,-8); scene.add(back);
+
+  /* ──────────────────────────────────
+     CHIP PHOTO TEXTURE  (async load)
+  ────────────────────────────────── */
+  new THREE.TextureLoader().load("quvaultX.png", tex => {
+    tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    // Apply to +Y face (index 2) of layers 3 and 5
+    [3, 5].forEach(i => {
+      if (!meshes[i]) return;
+      const mats = meshes[i].material;
+      mats[2] = new THREE.MeshStandardMaterial({
+        map: tex,
+        roughness: 0.15, metalness: 0.88,
+        emissive: new THREE.Color(0x001420),
+        emissiveIntensity: 0.10,
+      });
     });
   });
+
+  /* ──────────────────────────────────
+     BUILD LAYER MESHES
+  ────────────────────────────────── */
+  const group  = new THREE.Group();
+  scene.add(group);
+  const meshes  = [];
+  const ptLights = [];
+
+  // Procedural circuit-trace canvas texture for each layer top face
+  function makeCircuitTex(hexCol) {
+    const sz = 256, cv = document.createElement("canvas");
+    cv.width = cv.height = sz;
+    const cx = cv.getContext("2d");
+    cx.fillStyle = "#000"; cx.fillRect(0,0,sz,sz);
+    cx.strokeStyle = hexCol; cx.lineWidth = 0.8;
+    // grid
+    cx.globalAlpha = 0.14;
+    for (let i=0;i<=sz;i+=16){
+      cx.beginPath();cx.moveTo(i,0);cx.lineTo(i,sz);cx.stroke();
+      cx.beginPath();cx.moveTo(0,i);cx.lineTo(sz,i);cx.stroke();
+    }
+    // traces
+    cx.globalAlpha = 0.32; cx.lineWidth = 1.4;
+    for (let t=0;t<14;t++){
+      const x1=Math.random()*sz,y1=Math.random()*sz;
+      cx.beginPath();cx.moveTo(x1,y1);
+      cx.lineTo(x1+(Math.random()-.5)*sz*.55, y1+(Math.random()-.5)*sz*.55);
+      cx.stroke();
+    }
+    // pads
+    cx.globalAlpha=0.55; cx.fillStyle=hexCol;
+    for(let p=0;p<22;p++){
+      const px=(Math.floor(Math.random()*15)*16)+8;
+      const py=(Math.floor(Math.random()*15)*16)+8;
+      cx.fillRect(px-3,py-3,6,6);
+    }
+    return new THREE.CanvasTexture(cv);
+  }
+
+  function sideMat(l) {
+    return new THREE.MeshStandardMaterial({ color:l.c, emissive:l.e, emissiveIntensity:0.08, roughness:0.28, metalness:0.90 });
+  }
+  function topMat(l) {
+    return new THREE.MeshStandardMaterial({ map:makeCircuitTex(l.hex), roughness:0.14, metalness:0.92, emissive:new THREE.Color(l.e), emissiveIntensity:0.08 });
+  }
+  function botMat() {
+    return new THREE.MeshStandardMaterial({ color:0x020a10, roughness:0.8, metalness:0.2 });
+  }
+
+  L.forEach((l, i) => {
+    const geo  = new THREE.BoxGeometry(l.W, l.H, l.D);
+    // BoxGeometry face order: +X,-X,+Y,-Y,+Z,-Z
+    const mats = [ sideMat(l), sideMat(l), topMat(l), botMat(), sideMat(l), sideMat(l) ];
+    const mesh = new THREE.Mesh(geo, mats);
+    mesh.position.y = restY[i] - stackMid;
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    mesh.userData = { restY: restY[i]-stackMid, idx:i, def:l };
+    group.add(mesh);
+    meshes.push(mesh);
+
+    // Edge outline
+    const ec = new THREE.Color(l.c);
+    const edgeMat = new THREE.LineBasicMaterial({ color:ec, transparent:true, opacity:0.2 });
+    const hw=l.W/2, hh=l.H/2, hd=l.D/2;
+    const verts = [
+      -hw,-hh,-hd,  hw,-hh,-hd,  hw,-hh,hd, -hw,-hh,hd, -hw,-hh,-hd,
+      -hw, hh,-hd,  hw, hh,-hd,  hw, hh,hd, -hw, hh,hd, -hw, hh,-hd,
+    ];
+    const segs = [-hw,-hh,-hd,-hw,hh,-hd, hw,-hh,-hd,hw,hh,-hd, hw,-hh,hd,hw,hh,hd, -hw,-hh,hd,-hw,hh,hd];
+    const g1=new THREE.BufferGeometry(); g1.setAttribute("position",new THREE.Float32BufferAttribute(verts,3));
+    const g2=new THREE.BufferGeometry(); g2.setAttribute("position",new THREE.Float32BufferAttribute(segs,3));
+    mesh.add(new THREE.Line(g1,edgeMat));
+    mesh.add(new THREE.LineSegments(g2,edgeMat));
+    mesh.userData.edgeMat = edgeMat;
+
+    // Point light for glow
+    const pt = new THREE.PointLight(l.c, 0, 5);
+    pt.position.y = restY[i] - stackMid;
+    group.add(pt); ptLights.push(pt);
+  });
+
+  /* ──────────────────────────────────
+     PARTICLES
+  ────────────────────────────────── */
+  const NP=260, pPos=new Float32Array(NP*3), pCol=new Float32Array(NP*3), pVel=new Float32Array(NP*3);
+  const pal=[0x00f5d4,0xf72585,0x7209b7,0x06d6a0,0xfb8500].map(c=>new THREE.Color(c));
+  for(let i=0;i<NP;i++){
+    pPos[i*3]=(Math.random()-.5)*14; pPos[i*3+1]=(Math.random()-.5)*10; pPos[i*3+2]=(Math.random()-.5)*14;
+    pVel[i*3]=(Math.random()-.5)*.006; pVel[i*3+1]=(Math.random()-.5)*.004; pVel[i*3+2]=(Math.random()-.5)*.006;
+    const c=pal[i%pal.length]; pCol[i*3]=c.r;pCol[i*3+1]=c.g;pCol[i*3+2]=c.b;
+  }
+  const pGeo=new THREE.BufferGeometry();
+  pGeo.setAttribute("position",new THREE.BufferAttribute(pPos,3));
+  pGeo.setAttribute("color",new THREE.BufferAttribute(pCol,3));
+  const pMat=new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.45,sizeAttenuation:true});
+  scene.add(new THREE.Points(pGeo,pMat));
+
+  /* ──────────────────────────────────
+     SHARED STATE  (GSAP tweens these)
+  ────────────────────────────────── */
+  const S = { explode:0, rotY:0, rotX:-0.18, camY:3.5, camZ:8.5, hlLayer:-1 };
+
+  /* ──────────────────────────────────
+     GSAP SCROLL TRIGGER
+  ────────────────────────────────── */
+  if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const tl = gsap.timeline({
+      scrollTrigger:{
+        trigger:"#explodeSection",
+        start:"top top",
+        end:"bottom bottom",
+        scrub:1.4,
+      }
+    });
+    tl
+      .to(S,{explode:.3,  rotY:.45,  duration:1},    0)
+      .to(S,{explode:1.0, rotY:.9,   rotX:-.05, camY:2.8, camZ:9.5, duration:2}, 1)
+      .to(S,{rotY:-.5,    rotX:.06,  camY:2.2,  camZ:8,   duration:1.5}, 3)
+      .to(S,{explode:.5,  rotY:.1,   rotX:.52,  camY:6.8, camZ:5.2, duration:1.5}, 4.5)
+      .to(S,{explode:0,   rotY:.05,  rotX:-.40, camY:5.2, camZ:4.8, duration:1.5}, 6);
+
+    // Per-chapter layer highlights
+    const hlMap = [-1, 2, 3, 4, 0, 5];
+    document.querySelectorAll(".chapter").forEach((el,i) => {
+      ScrollTrigger.create({
+        trigger:el,
+        start:"top center",
+        end:"bottom center",
+        onEnter:()    =>{ S.hlLayer=hlMap[i]??-1; },
+        onEnterBack:()=>{ S.hlLayer=hlMap[i]??-1; },
+        onLeave:()    =>{ S.hlLayer=-1; },
+        onLeaveBack:()=>{ S.hlLayer=-1; },
+      });
+    });
+  }
+
+  /* ──────────────────────────────────
+     PILLAR HOTSPOT OVERLAYS
+  ────────────────────────────────── */
+  const PILLARS = [
+    {name:"ZKPE",full:"ZK Proof Engine",        col:"#00f5d4",desc:"PLONK · Groth16 · Nova  |  &lt;200ms",li:3, ox:-.95,oz:-.95},
+    {name:"FHES",full:"FHE Substrate",           col:"#f72585",desc:"CKKS Bootstrap  |  ~1s",              li:3, ox: .95,oz:-.95},
+    {name:"MPCF",full:"MPC Fabric",              col:"#7209b7",desc:"Garbled Circuits · tFHE",             li:3, ox:-.95,oz: .95},
+    {name:"FEOE",full:"FE & Obfuscation",        col:"#fb8500",desc:"k-Linear Maps · iO Sandbox",          li:3, ox: .95,oz: .95},
+    {name:"CEU", full:"Cryptomaton Exec Unit",   col:"#06d6a0",desc:"Opaque Exec · ZK Proof Out",          li:5, ox:  0, oz:  0},
+    {name:"KLV", full:"Key Lifecycle Vault",     col:"#ff4dc4",desc:"EAL6+ · TRNG · PUF · Anti-DPA",       li:4, ox:  0, oz:  0},
+  ];
+
+  const hotLayer  = document.getElementById("hotspotLayer");
+  const pillarCard = document.getElementById("pillarCard");
+
+  const hspots = PILLARS.map(p => {
+    const div = document.createElement("div");
+    div.className = "hspot";
+    div.style.background = p.col;
+    div.style.boxShadow  = `0 0 12px ${p.col}`;
+
+    const ring = document.createElement("div");
+    ring.className = "hspot-ring";
+    ring.style.borderColor = p.col;
+    div.appendChild(ring);
+
+    div.addEventListener("mouseenter", () => {
+      div.style.width = div.style.height = "20px";
+      div.style.boxShadow = `0 0 24px ${p.col},0 0 48px ${p.col}44`;
+      S.hlLayer = p.li;
+      if (pillarCard) {
+        pillarCard.innerHTML = `
+          <div style="font-family:'Orbitron',monospace;font-size:.58rem;color:${p.col};letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px">Layer ${p.li+1} · X-Ray</div>
+          <div style="font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:900;color:${p.col};letter-spacing:.08em;margin-bottom:4px">${p.name}</div>
+          <div style="font-size:.8rem;color:#7ab3c8;margin-bottom:14px">${p.full}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:#00f5d4;padding:8px 10px;background:rgba(0,245,212,.06);border:1px solid rgba(0,245,212,.15);border-radius:3px">${p.desc}</div>`;
+        pillarCard.style.opacity = "1";
+        pillarCard.style.borderColor = p.col+"66";
+        pillarCard.style.transform = "translateY(-50%) translateX(0)";
+      }
+    });
+    div.addEventListener("mouseleave", () => {
+      div.style.width = div.style.height = "14px";
+      div.style.boxShadow = `0 0 12px ${p.col}`;
+      S.hlLayer = -1;
+      if (pillarCard) {
+        pillarCard.style.opacity = "0";
+        pillarCard.style.transform = "translateY(-50%) translateX(30px)";
+      }
+    });
+
+    if (hotLayer) hotLayer.appendChild(div);
+    return div;
+  });
+
+  /* ──────────────────────────────────
+     MOUSE PARALLAX
+  ────────────────────────────────── */
+  let mx=0, my=0;
+  document.addEventListener("mousemove", e => {
+    mx=(e.clientX/window.innerWidth-.5)*2;
+    my=(e.clientY/window.innerHeight-.5)*2;
+  });
+
+  /* ──────────────────────────────────
+     SCREEN PROJECTION HELPER
+  ────────────────────────────────── */
+  const _v = new THREE.Vector3();
+  function toScreen(wx,wy,wz) {
+    _v.set(wx,wy,wz).project(camera);
+    return { x:(_v.x*.5+.5)*window.innerWidth, y:(-.5*_v.y+.5)*window.innerHeight, behind:_v.z>1 };
+  }
+
+  /* ──────────────────────────────────
+     RENDER LOOP
+  ────────────────────────────────── */
+  let t=0;
+  function tick() {
+    requestAnimationFrame(tick);
+    t += 0.012;
+
+    // 1. Layer Y positions
+    meshes.forEach((m,i) => {
+      const tY = m.userData.restY + i*S.explode*EXPL;
+      m.position.y += (tY-m.position.y)*.07;
+      ptLights[i].position.y = m.position.y;
+
+      const hl = (i===S.hlLayer);
+      ptLights[i].intensity += ((hl?2.8:0)-ptLights[i].intensity)*.07;
+
+      if (m.userData.edgeMat) {
+        const tO = hl ? .7+Math.sin(t*4)*.15 : .2;
+        m.userData.edgeMat.opacity += (tO-m.userData.edgeMat.opacity)*.08;
+      }
+      m.material.forEach(mat => {
+        if (mat && mat.emissiveIntensity!=null) {
+          const tE = hl ? .55+Math.sin(t*3)*.12 : .08;
+          mat.emissiveIntensity += (tE-mat.emissiveIntensity)*.06;
+        }
+      });
+    });
+
+    // 2. Group rotation
+    const heroVisible = window.scrollY < window.innerHeight*.6;
+    if (heroVisible) {
+      // Mouse parallax on hero
+      group.rotation.y += (mx*.28-group.rotation.y)*.03;
+      group.rotation.x += (-0.18+my*.10-group.rotation.x)*.03;
+    } else {
+      group.rotation.y += (S.rotY-group.rotation.y)*.04;
+      group.rotation.x += (S.rotX-group.rotation.x)*.04;
+    }
+    // Idle spin when stacked
+    if (S.explode < .05 && heroVisible) group.rotation.y += .0025;
+
+    // Centre group vertically
+    const spreadOffset = -(L.length/2)*S.explode*EXPL*.5;
+    group.position.y += (spreadOffset-group.position.y)*.06;
+
+    // 3. Camera
+    camera.position.y += (S.camY-camera.position.y)*.04;
+    camera.position.z += (S.camZ-camera.position.z)*.04;
+    camera.lookAt(0,0,0);
+
+    // 4. Particles drift
+    for(let i=0;i<NP;i++){
+      pPos[i*3]+=pVel[i*3]; pPos[i*3+1]+=pVel[i*3+1]; pPos[i*3+2]+=pVel[i*3+2];
+      if(Math.abs(pPos[i*3])>7)   pVel[i*3]*=-1;
+      if(Math.abs(pPos[i*3+1])>5) pVel[i*3+1]*=-1;
+      if(Math.abs(pPos[i*3+2])>7) pVel[i*3+2]*=-1;
+    }
+    pGeo.attributes.position.needsUpdate=true;
+    pMat.opacity = .25+S.explode*.4;
+
+    // 5. Hotspot screen positions
+    const showHS = S.explode > .2;
+    PILLARS.forEach((p,i) => {
+      const mesh = meshes[p.li];
+      if (!mesh) return;
+      // Local→world: group rotation around Y
+      const cosY = Math.cos(group.rotation.y), sinY = Math.sin(group.rotation.y);
+      const lx = mesh.position.x + p.ox;
+      const lz = mesh.position.z + p.oz;
+      const wx = group.position.x + lx*cosY - lz*sinY;
+      const wy = group.position.y + mesh.position.y + L[p.li].H/2 + .06;
+      const wz = group.position.z + lx*sinY + lz*cosY;
+      const sc = toScreen(wx,wy,wz);
+      const dot = hspots[i];
+      if (showHS && !sc.behind) {
+        dot.style.display="block"; dot.style.left=sc.x+"px"; dot.style.top=sc.y+"px";
+      } else { dot.style.display="none"; }
+    });
+
+    renderer.render(scene,camera);
+  }
+
+  onResize();
+  tick();
 
 })();
