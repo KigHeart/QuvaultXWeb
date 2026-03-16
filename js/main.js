@@ -163,31 +163,32 @@
   }, { passive: true });
 
   /* ══════════════════════════════════════
-     SCROLLYTELLING — EXPLODE SECTION
+     SCROLLYTELLING — CHIP PHOTO ANNOTATIONS
   ══════════════════════════════════════ */
   const explodeSection = document.getElementById("explodeSection");
-  const explodeSteps = document.querySelectorAll(".explode-step");
-  const exLayers = [
-    document.getElementById("exL5"),
-    document.getElementById("exL4"),
-    document.getElementById("exL3"),
-    document.getElementById("exL2"),
-    document.getElementById("exL1"),
+  const explodeSteps   = document.querySelectorAll(".explode-step");
+  const stepAnns       = document.querySelectorAll(".step-ann");
+  const annScope       = document.getElementById("annScope");
+  const chipStoryImg   = document.getElementById("chipStoryImg");
+
+  // Map each step to which data-steps annotations to show
+  // and what filter to apply to the chip photo
+  const stepFilters = [
+    "brightness(0.85) saturate(0.75) contrast(1.15)",
+    "brightness(1.0) saturate(0.9) contrast(1.2)",
+    "brightness(1.05) saturate(1.1) contrast(1.15)",
+    "brightness(0.9) saturate(0.8) contrast(1.3) hue-rotate(-5deg)",
+    "brightness(1.0) saturate(1.3) contrast(1.1) hue-rotate(8deg)",
   ];
 
-  // Layer initial stacked positions (z-offset illusion)
-  const layerOffsets = [0, 0, 0, 0, 0]; // base is flat
-
-  function setLayerStyle(layer, index, progress) {
-    if (!layer) return;
-    // At progress 0 all layers overlap; as progress increases, they separate
-    const separation = progress * 70; // px
-    const yOffset = (index - 2) * separation;
-    const scale = 1 - index * 0.04 * (1 - progress);
-    layer.style.transform = `translateY(${yOffset}px) scale(${scale})`;
-    layer.style.opacity = progress > 0.05 ? 1 : 0.6;
-    layer.classList.toggle("revealed", progress > 0.3);
-  }
+  // Scope circle positions per step [top%, left%, size px]
+  const scopePositions = [
+    [50, 50, 300],
+    [48, 50, 140],
+    [50, 40, 200],
+    [18, 72, 90],
+    [88, 50, 180],
+  ];
 
   function getExplodeProgress() {
     if (!explodeSection) return 0;
@@ -198,23 +199,38 @@
   }
 
   function getActiveStep(progress) {
-    // 5 steps across 0-1
     return Math.min(4, Math.floor(progress * 5));
   }
 
   function updateExplode() {
-    const progress = getExplodeProgress();
+    const progress   = getExplodeProgress();
     const activeStep = getActiveStep(progress);
 
-    // Update step text
+    // Update step text panels
     explodeSteps.forEach((step, i) => {
       step.classList.toggle("active", i === activeStep);
     });
 
-    // Update layer positions — spread them out gradually
-    exLayers.forEach((layer, i) => {
-      if (layer) setLayerStyle(layer, i, progress);
+    // Update annotation visibility
+    stepAnns.forEach((ann) => {
+      const stepsAttr = ann.dataset.steps || "";
+      const steps = stepsAttr.split(",").map(Number);
+      ann.classList.toggle("ann-active", steps.includes(activeStep));
     });
+
+    // Update chip photo filter
+    if (chipStoryImg) {
+      chipStoryImg.style.filter = stepFilters[activeStep];
+    }
+
+    // Update scope circle
+    if (annScope) {
+      const [top, left, size] = scopePositions[activeStep];
+      annScope.style.top    = top + "%";
+      annScope.style.left   = left + "%";
+      annScope.style.width  = size + "px";
+      annScope.style.height = size + "px";
+    }
   }
 
   /* ── INTERSECTION OBSERVER FOR REVEALS ── */

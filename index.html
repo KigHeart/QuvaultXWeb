@@ -7,7 +7,11 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Fallback: load fonts directly if Google Fonts blocked -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+  </style>
 </head>
 <body>
 
@@ -135,68 +139,116 @@
   </section>
 
   <!-- ══════════════════════════════
-       SECTION 2 · CHIP EXPLODE / SCROLLYTELLING
+       SECTION 2 · CHIP PHOTO SCROLLYTELLING
   ══════════════════════════════ -->
   <section class="explode-section" id="explodeSection">
     <div class="explode-sticky">
+
+      <!-- LEFT: Real chip photo with scroll-driven annotation overlays -->
       <div class="explode-chip-wrap" id="explodeChipWrap">
-        <!-- Animated layer stack -->
-        <div class="ex-layer ex-layer-5" id="exL5">
-          <div class="ex-label">UCIe 3.0 · 512 Gb/s</div>
-          <div class="ex-layer-body ex-phy"></div>
-        </div>
-        <div class="ex-layer ex-layer-4" id="exL4">
-          <div class="ex-label">Key Lifecycle Vault · EAL6+</div>
-          <div class="ex-layer-body ex-klv"></div>
-        </div>
-        <div class="ex-layer ex-layer-3" id="exL3">
-          <div class="ex-label">Shared Algebra Core · NTT×16 MSM×8</div>
-          <div class="ex-layer-body ex-algebra"></div>
-        </div>
-        <div class="ex-layer ex-layer-2" id="exL2">
-          <div class="ex-label">Five Cryptographic Pillars</div>
-          <div class="ex-layer-body ex-pillars-layer">
-            <div class="mini-pillar" style="--c:#00f5d4">ZKPE</div>
-            <div class="mini-pillar" style="--c:#f72585">FHES</div>
-            <div class="mini-pillar" style="--c:#7209b7">MPCF</div>
-            <div class="mini-pillar" style="--c:#fb8500">FEOE</div>
-            <div class="mini-pillar" style="--c:#06d6a0">CEU</div>
+        <div class="chip-story-frame">
+          <!-- The actual chip photo -->
+          <img src="quvaultX.png" alt="QuVaultX Chiplet Die" class="chip-story-img" id="chipStoryImg" />
+
+          <!-- Scan grid overlay (always on) -->
+          <div class="chip-story-grid"></div>
+
+          <!-- Scan line (always animating) -->
+          <div class="chip-story-scan"></div>
+
+          <!-- ── Annotation pins — revealed per scroll step ── -->
+
+          <!-- Step 0: full chip overview — corners light up -->
+          <div class="ann-corner ann-tl step-ann" data-steps="0,1,2,3,4"></div>
+          <div class="ann-corner ann-tr step-ann" data-steps="0,1,2,3,4"></div>
+          <div class="ann-corner ann-bl step-ann" data-steps="0,1,2,3,4"></div>
+          <div class="ann-corner ann-br step-ann" data-steps="0,1,2,3,4"></div>
+
+          <!-- Step 1: Algebra Core — centre crosshair -->
+          <div class="ann-crosshair step-ann" data-steps="1" style="top:48%;left:50%;">
+            <div class="ann-ch-ring"></div>
+            <div class="ann-ch-dot"></div>
+            <div class="ann-pin-label ann-label-right">NTT×16 · MSM×8<br/><span>Shared Algebra Core</span></div>
           </div>
-        </div>
-        <div class="ex-layer ex-layer-1" id="exL1">
-          <div class="ex-label">HBM3 Memory · 32 GiB</div>
-          <div class="ex-layer-body ex-hbm">
-            <div class="hbm-stack"></div>
-            <div class="hbm-stack"></div>
-            <div class="hbm-stack"></div>
-            <div class="hbm-stack"></div>
+
+          <!-- Step 2: Five Pillars — left cluster -->
+          <div class="ann-cluster step-ann" data-steps="2" style="top:35%;left:18%;">
+            <div class="ann-dot" style="--dc:#00f5d4"></div>
+            <div class="ann-line-h" style="--dc:#00f5d4"></div>
+            <div class="ann-pin-label ann-label-right" style="color:#00f5d4">ZKPE<br/><span>ZK Proof Engine</span></div>
           </div>
+          <div class="ann-cluster step-ann" data-steps="2" style="top:50%;left:14%;">
+            <div class="ann-dot" style="--dc:#f72585"></div>
+            <div class="ann-line-h" style="--dc:#f72585"></div>
+            <div class="ann-pin-label ann-label-right" style="color:#f72585">FHES<br/><span>FHE Substrate</span></div>
+          </div>
+          <div class="ann-cluster step-ann" data-steps="2" style="top:65%;left:18%;">
+            <div class="ann-dot" style="--dc:#7209b7"></div>
+            <div class="ann-line-h" style="--dc:#7209b7"></div>
+            <div class="ann-pin-label ann-label-right" style="color:#7209b7">MPCF<br/><span>MPC Fabric</span></div>
+          </div>
+          <div class="ann-cluster step-ann" data-steps="2" style="top:35%;left:68%;">
+            <div class="ann-dot" style="--dc:#fb8500"></div>
+            <div class="ann-line-h ann-line-left" style="--dc:#fb8500"></div>
+            <div class="ann-pin-label ann-label-left" style="color:#fb8500">FEOE<br/><span>FE &amp; Obfuscation</span></div>
+          </div>
+          <div class="ann-cluster step-ann" data-steps="2" style="top:65%;left:72%;">
+            <div class="ann-dot" style="--dc:#06d6a0"></div>
+            <div class="ann-line-h ann-line-left" style="--dc:#06d6a0"></div>
+            <div class="ann-pin-label ann-label-left" style="color:#06d6a0">CEU<br/><span>Cryptomaton Exec</span></div>
+          </div>
+
+          <!-- Step 3: KLV — top right zone -->
+          <div class="ann-crosshair step-ann" data-steps="3" style="top:18%;left:72%;">
+            <div class="ann-ch-ring" style="border-color:#f72585;box-shadow:0 0 16px rgba(247,37,133,0.5)"></div>
+            <div class="ann-ch-dot" style="background:#f72585"></div>
+            <div class="ann-pin-label ann-label-left" style="color:#f72585">KLV · EAL6+<br/><span>Key Lifecycle Vault</span></div>
+          </div>
+
+          <!-- Step 4: HBM3 — bottom edge indicators -->
+          <div class="ann-hbm-row step-ann" data-steps="4">
+            <div class="ann-hbm-chip" style="--hc:#06d6a0"></div>
+            <div class="ann-hbm-chip" style="--hc:#06d6a0"></div>
+            <div class="ann-hbm-chip" style="--hc:#06d6a0"></div>
+            <div class="ann-hbm-chip" style="--hc:#06d6a0"></div>
+            <span class="ann-hbm-label">HBM3 · 3.28 TB/s · 32 GiB</span>
+          </div>
+
+          <!-- Zoom scope circle (step 1+) -->
+          <div class="ann-scope step-ann" data-steps="1,2,3,4" id="annScope"></div>
         </div>
       </div>
+
+      <!-- RIGHT: Story text panel -->
       <div class="explode-text-panel" id="explodeTextPanel">
         <div class="explode-step" data-step="0">
-          <h2>The Architecture</h2>
-          <p>QuVaultX-PC is a 185 mm² chiplet in TSMC N5 FinFET, integrating five programmable-cryptography pillars over a UCIe 3.0 die-to-die fabric at 64 GT/s.</p>
+          <div class="es-tag">Overview</div>
+          <h2>The Die</h2>
+          <p>QuVaultX-PC — 185 mm² in TSMC N5 FinFET. Five programmable-cryptography pillars integrated over a UCIe 3.0 die-to-die fabric at 64 GT/s.</p>
         </div>
         <div class="explode-step" data-step="1">
+          <div class="es-tag">Core Architecture</div>
           <h2>Three Algebraic Kernels</h2>
-          <p>Every cryptographic operation reduces to <strong>polynomial NTT</strong>, <strong>multi-scalar multiplication</strong>, or <strong>hash evaluation</strong> — a single shared Algebra Core serves all five subsystems.</p>
+          <p>Every cryptographic operation — ZK proofs, FHE, MPC, or obfuscation — reduces to <strong>polynomial NTT</strong>, <strong>multi-scalar multiplication</strong>, or <strong>hash evaluation</strong>. One shared Algebra Core serves all five subsystems.</p>
         </div>
         <div class="explode-step" data-step="2">
-          <h2>Five Pillars, One Die</h2>
-          <p>ZKPE · FHES · MPCF · FEOE · CEU — the full programmable cryptography stack in silicon. No other chiplet targets all five layers simultaneously.</p>
+          <div class="es-tag">Five Pillars</div>
+          <h2>Full Stack in Silicon</h2>
+          <p>ZKPE · FHES · MPCF · FEOE · CEU — the complete programmable cryptography stack on a single die. No other chiplet targets all five layers simultaneously.</p>
         </div>
         <div class="explode-step" data-step="3">
+          <div class="es-tag">Security</div>
           <h2>Physical Root of Trust</h2>
-          <p>The Key Lifecycle Vault (KLV) provides CC EAL6+ isolation, TRNG, PUF, and anti-DPA masking. Emergency zeroisation completes within 4 UCIe clock cycles.</p>
+          <p>The Key Lifecycle Vault provides <strong>CC EAL6+</strong> isolation, TRNG, PUF, and anti-DPA masking. Emergency zeroisation completes within <strong>4 UCIe clock cycles</strong>.</p>
         </div>
         <div class="explode-step" data-step="4">
+          <div class="es-tag">Memory</div>
           <h2>Memory Bandwidth</h2>
-          <p>Four HBM3 channels deliver 3.28 TB/s aggregate bandwidth — fueling key material, witness data, ciphertext buffers, and MSM base tables simultaneously.</p>
+          <p>Four HBM3 channels deliver <strong>3.28 TB/s</strong> aggregate bandwidth — fueling key material, witness data, ciphertext buffers, and MSM base tables simultaneously.</p>
         </div>
       </div>
+
     </div>
-    <!-- scroll spacer -->
     <div class="explode-spacer"></div>
   </section>
 

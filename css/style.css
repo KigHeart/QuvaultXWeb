@@ -28,9 +28,9 @@
   --glow-cyan:  0 0 20px rgba(0,245,212,0.25), 0 0 60px rgba(0,245,212,0.08);
   --glow-pink:  0 0 20px rgba(247,37,133,0.25), 0 0 60px rgba(247,37,133,0.08);
 
-  --font-display: 'Orbitron', 'Courier New', monospace;
-  --font-body:    'Rajdhani', 'Segoe UI', sans-serif;
-  --font-mono:    'Share Tech Mono', monospace;
+  --font-display: 'Orbitron', 'Exo 2', 'Segoe UI', 'Arial', sans-serif;
+  --font-body:    'Rajdhani', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:    'Share Tech Mono', 'Courier New', 'Lucida Console', monospace;
 
   --radius:    4px;
   --radius-lg: 8px;
@@ -492,11 +492,9 @@ body:hover .cursor-ring { opacity: 1; }
 @keyframes arrowBounce { 0%,100%{transform:rotate(45deg) translateY(0)} 50%{transform:rotate(45deg) translateY(6px)} }
 
 /* ════════════════════════════════════════════════
-   EXPLODE SECTION
+   EXPLODE SECTION — CHIP PHOTO + SCROLL ANNOTATIONS
 ════════════════════════════════════════════════ */
-.explode-section {
-  position: relative;
-}
+.explode-section { position: relative; }
 .explode-spacer { height: 500vh; }
 .explode-sticky {
   position: sticky; top: 0;
@@ -509,87 +507,206 @@ body:hover .cursor-ring { opacity: 1; }
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
+
+/* ── Chip photo frame ── */
 .explode-chip-wrap {
   position: relative;
   width: 100%;
   height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  perspective: 1000px;
 }
-.ex-layer {
-  position: absolute;
-  width: 340px; height: 340px;
-  border: 1px solid;
-  border-radius: var(--radius-lg);
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s;
-}
-.ex-layer-5 { border-color: rgba(0,245,212,0.3); background: rgba(0,245,212,0.03); }
-.ex-layer-4 { border-color: rgba(247,37,133,0.3); background: rgba(247,37,133,0.03); }
-.ex-layer-3 { border-color: rgba(114,9,183,0.4); background: rgba(114,9,183,0.04); }
-.ex-layer-2 { border-color: rgba(251,133,0,0.3); background: rgba(251,133,0,0.03); }
-.ex-layer-1 { border-color: rgba(6,214,160,0.3); background: rgba(6,214,160,0.03); }
-.ex-label {
-  position: absolute; top: -28px; left: 0;
-  font-family: var(--font-mono);
-  font-size: 0.65rem; color: var(--text-muted);
-  letter-spacing: 0.1em; white-space: nowrap;
-  opacity: 0; transition: opacity 0.5s;
-}
-.ex-layer.revealed .ex-label { opacity: 1; }
-.ex-layer-body {
-  width: 80%; height: 80%;
-  display: flex; align-items: center; justify-content: center;
-}
-.ex-phy {
-  background: repeating-linear-gradient(
-    -45deg, rgba(0,245,212,0.06) 0, rgba(0,245,212,0.06) 4px,
-    transparent 4px, transparent 12px
-  );
-}
-.ex-klv {
-  border: 2px solid rgba(247,37,133,0.4);
+.chip-story-frame {
   position: relative;
+  width: min(480px, 90%);
+  height: min(480px, 90%);
+  border: 1px solid rgba(0,245,212,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0,245,212,0.06), inset 0 0 40px rgba(0,0,0,0.6);
 }
-.ex-klv::before {
-  content: 'KLV'; position: absolute;
-  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
-  color: var(--accent-pink); opacity: 0.5;
+.chip-story-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.85) saturate(0.75) contrast(1.15);
+  transition: filter 1s ease;
 }
-.ex-algebra {
-  background-image: radial-gradient(rgba(114,9,183,0.3) 2px, transparent 2px);
-  background-size: 20px 20px;
+.chip-story-frame:hover .chip-story-img {
+  filter: brightness(1) saturate(1) contrast(1.1);
 }
-.ex-pillars-layer {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  justify-content: center; align-items: center;
-}
-.mini-pillar {
-  padding: 6px 12px;
-  border: 1px solid var(--c, #fff);
-  color: var(--c, #fff);
-  font-family: var(--font-display);
-  font-size: 0.65rem; font-weight: 700;
-  letter-spacing: 0.1em;
-  border-radius: 2px;
-}
-.ex-hbm { display: flex; gap: 12px; }
-.hbm-stack {
-  width: 40px; height: 80px;
-  background: linear-gradient(180deg, rgba(6,214,160,0.3), rgba(6,214,160,0.05));
-  border: 1px solid rgba(6,214,160,0.4);
-  border-radius: 2px;
-  position: relative;
-}
-.hbm-stack::before, .hbm-stack::after {
-  content: ''; position: absolute;
-  width: 100%; height: 1px;
-  background: rgba(6,214,160,0.3);
-}
-.hbm-stack::before { top: 25%; }
-.hbm-stack::after { top: 60%; }
 
-/* Explode text panel */
+/* Scan grid overlay */
+.chip-story-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Animated scan line */
+.chip-story-scan {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,245,212,0.7) 40%, rgba(0,245,212,1) 50%, rgba(0,245,212,0.7) 60%, transparent 100%);
+  animation: storyScan 3.5s linear infinite;
+  pointer-events: none;
+  filter: blur(1px);
+}
+@keyframes storyScan { from{top:-2px} to{top:100%} }
+
+/* ── Corner brackets ── */
+.ann-corner {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--accent-cyan);
+  border-style: solid;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.ann-corner.ann-tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+.ann-corner.ann-tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
+.ann-corner.ann-bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
+.ann-corner.ann-br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+/* ── Crosshair pin ── */
+.ann-crosshair {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.ann-ch-ring {
+  width: 28px; height: 28px;
+  border: 1.5px solid var(--accent-cyan);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  box-shadow: 0 0 14px rgba(0,245,212,0.5);
+  animation: ringPulse 2s infinite;
+}
+@keyframes ringPulse {
+  0%,100%{ transform:translate(-50%,-50%) scale(1); opacity:1; }
+  50%{ transform:translate(-50%,-50%) scale(1.4); opacity:0.4; }
+}
+.ann-ch-dot {
+  width: 6px; height: 6px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* ── Cluster annotation pin ── */
+.ann-cluster {
+  position: absolute;
+  transform: translateY(-50%);
+  display: flex; align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.ann-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--dc, var(--accent-cyan));
+  box-shadow: 0 0 10px var(--dc, var(--accent-cyan));
+  flex-shrink: 0;
+  animation: dotPulse 2s infinite;
+}
+@keyframes dotPulse {
+  0%,100%{ box-shadow:0 0 6px var(--dc); }
+  50%{ box-shadow:0 0 16px var(--dc); }
+}
+.ann-line-h {
+  width: 32px; height: 1px;
+  background: var(--dc, var(--accent-cyan));
+  flex-shrink: 0;
+}
+.ann-line-left { order: -1; }
+
+/* ── Pin labels ── */
+.ann-pin-label {
+  font-family: var(--font-display);
+  font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  background: rgba(2,4,8,0.85);
+  padding: 4px 8px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.ann-pin-label span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.55rem; font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.ann-label-right { margin-left: 6px; }
+.ann-label-left  { margin-right: 6px; order: -2; }
+
+/* Also handle crosshair label positioning */
+.ann-crosshair .ann-pin-label {
+  position: absolute;
+  top: 50%; left: calc(100% + 18px);
+  transform: translateY(-50%);
+}
+.ann-crosshair .ann-label-left {
+  left: auto; right: calc(100% + 18px);
+}
+
+/* ── HBM row (bottom) ── */
+.ann-hbm-row {
+  position: absolute; bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.ann-hbm-chip {
+  width: 28px; height: 14px;
+  border: 1px solid var(--hc, #06d6a0);
+  background: rgba(6,214,160,0.08);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(6,214,160,0.3);
+  animation: hbmBlink 1.8s infinite;
+}
+.ann-hbm-chip:nth-child(2) { animation-delay: 0.2s; }
+.ann-hbm-chip:nth-child(3) { animation-delay: 0.4s; }
+.ann-hbm-chip:nth-child(4) { animation-delay: 0.6s; }
+@keyframes hbmBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.ann-hbm-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: #06d6a0;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* ── Scope circle ── */
+.ann-scope {
+  position: absolute;
+  width: 160px; height: 160px;
+  border: 1px solid rgba(0,245,212,0.25);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease, width 0.8s ease, height 0.8s ease, top 0.8s ease, left 0.8s ease;
+  box-shadow: 0 0 30px rgba(0,245,212,0.08);
+}
+
+/* ── Show/hide annotations based on active step ── */
+.step-ann { opacity: 0; transition: opacity 0.5s ease; }
+.step-ann.ann-active { opacity: 1; }
+
+/* ── Explode text panel ── */
 .explode-text-panel {
   padding: 80px 60px;
   position: relative;
@@ -606,18 +723,32 @@ body:hover .cursor-ring { opacity: 1; }
   opacity: 1; transform: translateY(0);
   pointer-events: auto;
 }
+.es-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent-cyan);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding: 3px 10px;
+  border: 1px solid rgba(0,245,212,0.3);
+  border-radius: 2px;
+}
 .explode-step h2 {
   font-family: var(--font-display);
-  font-size: 2rem; font-weight: 700;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 16px;
-  line-height: 1.2;
+  margin-bottom: 20px;
+  line-height: 1.15;
+  letter-spacing: 0.03em;
 }
 .explode-step p {
-  font-size: 1.1rem; line-height: 1.7;
+  font-size: 1.05rem; line-height: 1.75;
   color: var(--text-secondary);
 }
-.explode-step strong { color: var(--accent-cyan); font-weight: 600; }
+.explode-step strong { color: var(--accent-cyan); font-weight: 700; }
 
 /* ════════════════════════════════════════════════
    SECTION COMMON
@@ -1119,7 +1250,9 @@ body:hover .cursor-ring { opacity: 1; }
   .hero-content { transform: none; padding: 0 24px; }
   .chip-universe { display: none; }
   .explode-sticky { grid-template-columns: 1fr; }
-  .explode-chip-wrap { height: 40vh; }
+  .explode-chip-wrap { height: 50vh; }
+  .chip-story-frame { width: min(320px, 88vw); height: min(320px, 88vw); }
+  .ann-pin-label { font-size: 0.5rem; padding: 3px 6px; }
   .wp-inner { grid-template-columns: 1fr; gap: 40px; }
   .contact-grid { grid-template-columns: 1fr; }
   .compare-row { grid-template-columns: 2fr repeat(5, 0.6fr); font-size: 0.75rem; }
