@@ -245,106 +245,44 @@ body:hover .cursor-ring { opacity: 1; }
 .mobile-nav a:hover { color: var(--accent-cyan); }
 
 /* ════════════════════════════════════════════════
+   THREE.JS CANVAS — global fixed layer
+════════════════════════════════════════════════ */
+.three-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+/* ════════════════════════════════════════════════
    HERO
 ════════════════════════════════════════════════ */
 .hero {
   position: relative;
   min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center;
   overflow: hidden;
   padding-top: 64px;
+  z-index: 1;
 }
 .hero-bg-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(0,245,212,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,245,212,0.04) 1px, transparent 1px);
+    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
   background-size: 60px 60px;
-  animation: gridPulse 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
 }
-@keyframes gridPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-.hero-scan-line {
-  position: absolute; left: 0; right: 0;
-  height: 1px; background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-  animation: scanLine 6s linear infinite;
-  opacity: 0.4;
-}
-@keyframes scanLine { from{ top: -1px; } to{ top: 100%; } }
 
-/* Chip universe */
-.chip-universe {
-  position: absolute;
-  width: min(700px, 90vw);
-  height: min(700px, 90vw);
-  top: 50%; left: 55%;
-  transform: translate(-20%, -50%);
-}
-.chip-layer {
-  position: absolute; inset: 0;
-  will-change: transform, opacity;
-}
-.layer-pcb {
-  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(7,37,53,0.8), transparent);
-}
-.pcb-traces {
-  position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,245,212,0.06) 39px, rgba(0,245,212,0.06) 40px),
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,245,212,0.06) 39px, rgba(0,245,212,0.06) 40px);
-}
-.layer-substrate {
-  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0,245,212,0.03), transparent);
-}
-.chip-frame {
-  position: absolute; inset: 40px;
-  border: 1px solid rgba(0,245,212,0.3);
-}
-.chip-corner {
-  position: absolute; width: 20px; height: 20px;
-  border-color: var(--accent-cyan); border-style: solid;
-}
-.chip-corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
-.chip-corner.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
-.chip-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
-.chip-corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
-.chip-photo {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  filter: brightness(0.9) saturate(0.8) contrast(1.1);
-  transition: filter 0.5s;
-}
-.chip-overlay-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,245,212,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,245,212,0.04) 1px, transparent 1px);
-  background-size: 30px 30px;
-  pointer-events: none;
-}
-.chip-scan-h {
-  position: absolute; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0,245,212,0.6), transparent);
-  animation: chipScanH 4s linear infinite;
-  pointer-events: none;
-}
-@keyframes chipScanH { from{top:0} to{top:100%} }
-.chip-scan-v {
-  position: absolute; top: 0; bottom: 0;
-  width: 2px;
-  background: linear-gradient(180deg, transparent, rgba(247,37,133,0.4), transparent);
-  animation: chipScanV 6s linear infinite;
-  pointer-events: none;
-}
-@keyframes chipScanV { from{left:0} to{left:100%} }
-.layer-particles { pointer-events: none; }
-
-/* Hero content */
+/* Hero content — left half only so chip is visible on right */
 .hero-content {
-  position: relative; z-index: 10;
-  max-width: 600px;
-  padding: 0 40px;
-  transform: translateX(-15%);
+  position: relative; z-index: 2;
+  max-width: 560px;
+  padding: 0 60px;
+  margin-left: 0;
 }
 .hero-eyebrow {
   display: flex; align-items: center; gap: 10px;
@@ -380,7 +318,7 @@ body:hover .cursor-ring { opacity: 1; }
 }
 .hero-title-sub {
   font-family: var(--font-display);
-  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
   font-weight: 400;
   color: var(--text-secondary);
   letter-spacing: 0.2em;
@@ -400,77 +338,17 @@ body:hover .cursor-ring { opacity: 1; }
   margin-bottom: 48px;
   animation: fadeUp 0.8s ease 1.1s both;
 }
-.btn-primary {
-  display: inline-flex; align-items: center;
-  padding: 14px 28px;
-  background: var(--accent-cyan);
-  color: var(--bg-void);
-  font-family: var(--font-display);
-  font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  border-radius: var(--radius);
-  transition: box-shadow var(--transition), transform var(--transition), background var(--transition);
-}
-.btn-primary:hover {
-  box-shadow: var(--glow-cyan);
-  transform: translateY(-2px);
-  background: #1ffde0;
-}
-.btn-ghost {
-  display: inline-flex; align-items: center;
-  padding: 14px 28px;
-  border: 1px solid rgba(0,245,212,0.4);
-  color: var(--accent-cyan);
-  font-family: var(--font-display);
-  font-size: 0.75rem; font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  border-radius: var(--radius);
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-.btn-ghost:hover {
-  border-color: var(--accent-cyan);
-  box-shadow: var(--glow-cyan);
-}
 .hero-stats {
-  display: flex; align-items: center; gap: 0;
+  display: flex; align-items: center;
   flex-wrap: wrap;
   animation: fadeUp 0.8s ease 1.3s both;
 }
-.h-stat {
-  display: flex; flex-direction: column;
-  padding: 0 28px 0 0;
-}
-.h-stat-div {
-  width: 1px; height: 40px;
-  background: var(--border);
-  margin: 0 28px 0 0;
-}
-.h-stat-n {
-  font-family: var(--font-display);
-  font-size: 1.8rem; font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1;
-}
-.h-stat-u {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--accent-cyan);
-  line-height: 1;
-  margin-top: 2px;
-}
-.h-stat-l {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 4px;
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+.h-stat { display: flex; flex-direction: column; padding: 0 28px 0 0; }
+.h-stat-div { width: 1px; height: 40px; background: var(--border); margin: 0 28px 0 0; }
+.h-stat-n { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.h-stat-u { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-cyan); line-height: 1; margin-top: 2px; }
+.h-stat-l { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 
 /* Scroll hint */
 .scroll-hint {
@@ -481,6 +359,7 @@ body:hover .cursor-ring { opacity: 1; }
   font-size: 0.7rem; color: var(--text-muted);
   letter-spacing: 0.1em;
   animation: fadeUp 1s ease 2s both;
+  z-index: 2;
 }
 .scroll-arrow {
   width: 20px; height: 20px;
@@ -492,236 +371,46 @@ body:hover .cursor-ring { opacity: 1; }
 @keyframes arrowBounce { 0%,100%{transform:rotate(45deg) translateY(0)} 50%{transform:rotate(45deg) translateY(6px)} }
 
 /* ════════════════════════════════════════════════
-   EXPLODE SECTION — CHIP PHOTO + SCROLL ANNOTATIONS
+   EXPLODE SECTION — CHAPTERS SCROLL OVER 3D CANVAS
 ════════════════════════════════════════════════ */
-.explode-section { position: relative; }
-.explode-spacer { height: 500vh; }
-.explode-sticky {
-  position: sticky; top: 0;
+.explode-section {
+  position: relative;
+  z-index: 1;
+}
+
+/* The chapters container — tall enough for all scroll chapters */
+.chapters-wrap {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Each chapter is one viewport tall */
+.chapter {
   height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   align-items: center;
-  overflow: hidden;
-  background: var(--bg-deep);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
-/* ── Chip photo frame ── */
-.explode-chip-wrap {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-}
-.chip-story-frame {
-  position: relative;
-  width: min(480px, 90%);
-  height: min(480px, 90%);
-  border: 1px solid rgba(0,245,212,0.2);
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 0 60px rgba(0,245,212,0.06), inset 0 0 40px rgba(0,0,0,0.6);
-}
-.chip-story-img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: brightness(0.85) saturate(0.75) contrast(1.15);
-  transition: filter 1s ease;
-}
-.chip-story-frame:hover .chip-story-img {
-  filter: brightness(1) saturate(1) contrast(1.1);
-}
-
-/* Scan grid overlay */
-.chip-story-grid {
-  position: absolute; inset: 0; pointer-events: none;
-  background-image:
-    linear-gradient(rgba(0,245,212,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,245,212,0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
-/* Animated scan line */
-.chip-story-scan {
-  position: absolute; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0,245,212,0.7) 40%, rgba(0,245,212,1) 50%, rgba(0,245,212,0.7) 60%, transparent 100%);
-  animation: storyScan 3.5s linear infinite;
-  pointer-events: none;
-  filter: blur(1px);
-}
-@keyframes storyScan { from{top:-2px} to{top:100%} }
-
-/* ── Corner brackets ── */
-.ann-corner {
-  position: absolute;
-  width: 20px; height: 20px;
-  border-color: var(--accent-cyan);
-  border-style: solid;
-  opacity: 0;
-  transition: opacity 0.5s ease;
   pointer-events: none;
 }
-.ann-corner.ann-tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
-.ann-corner.ann-tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; }
-.ann-corner.ann-bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; }
-.ann-corner.ann-br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
 
-/* ── Crosshair pin ── */
-.ann-crosshair {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-.ann-ch-ring {
-  width: 28px; height: 28px;
-  border: 1.5px solid var(--accent-cyan);
-  border-radius: 50%;
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  box-shadow: 0 0 14px rgba(0,245,212,0.5);
-  animation: ringPulse 2s infinite;
-}
-@keyframes ringPulse {
-  0%,100%{ transform:translate(-50%,-50%) scale(1); opacity:1; }
-  50%{ transform:translate(-50%,-50%) scale(1.4); opacity:0.4; }
-}
-.ann-ch-dot {
-  width: 6px; height: 6px;
-  background: var(--accent-cyan);
-  border-radius: 50%;
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  box-shadow: 0 0 8px var(--accent-cyan);
-}
-
-/* ── Cluster annotation pin ── */
-.ann-cluster {
-  position: absolute;
-  transform: translateY(-50%);
-  display: flex; align-items: center;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-.ann-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--dc, var(--accent-cyan));
-  box-shadow: 0 0 10px var(--dc, var(--accent-cyan));
-  flex-shrink: 0;
-  animation: dotPulse 2s infinite;
-}
-@keyframes dotPulse {
-  0%,100%{ box-shadow:0 0 6px var(--dc); }
-  50%{ box-shadow:0 0 16px var(--dc); }
-}
-.ann-line-h {
-  width: 32px; height: 1px;
-  background: var(--dc, var(--accent-cyan));
-  flex-shrink: 0;
-}
-.ann-line-left { order: -1; }
-
-/* ── Pin labels ── */
-.ann-pin-label {
-  font-family: var(--font-display);
-  font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.1em;
-  line-height: 1.4;
-  background: rgba(2,4,8,0.85);
-  padding: 4px 8px;
-  border-radius: 2px;
-  white-space: nowrap;
-}
-.ann-pin-label span {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 0.55rem; font-weight: 400;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
-.ann-label-right { margin-left: 6px; }
-.ann-label-left  { margin-right: 6px; order: -2; }
-
-/* Also handle crosshair label positioning */
-.ann-crosshair .ann-pin-label {
-  position: absolute;
-  top: 50%; left: calc(100% + 18px);
-  transform: translateY(-50%);
-}
-.ann-crosshair .ann-label-left {
-  left: auto; right: calc(100% + 18px);
-}
-
-/* ── HBM row (bottom) ── */
-.ann-hbm-row {
-  position: absolute; bottom: 12px; left: 50%;
-  transform: translateX(-50%);
-  display: flex; align-items: center; gap: 6px;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-  pointer-events: none;
-}
-.ann-hbm-chip {
-  width: 28px; height: 14px;
-  border: 1px solid var(--hc, #06d6a0);
-  background: rgba(6,214,160,0.08);
-  border-radius: 2px;
-  box-shadow: 0 0 8px rgba(6,214,160,0.3);
-  animation: hbmBlink 1.8s infinite;
-}
-.ann-hbm-chip:nth-child(2) { animation-delay: 0.2s; }
-.ann-hbm-chip:nth-child(3) { animation-delay: 0.4s; }
-.ann-hbm-chip:nth-child(4) { animation-delay: 0.6s; }
-@keyframes hbmBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.ann-hbm-label {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: #06d6a0;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-/* ── Scope circle ── */
-.ann-scope {
-  position: absolute;
-  width: 160px; height: 160px;
-  border: 1px solid rgba(0,245,212,0.25);
-  border-radius: 50%;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease, width 0.8s ease, height 0.8s ease, top 0.8s ease, left 0.8s ease;
-  box-shadow: 0 0 30px rgba(0,245,212,0.08);
-}
-
-/* ── Show/hide annotations based on active step ── */
-.step-ann { opacity: 0; transition: opacity 0.5s ease; }
-.step-ann.ann-active { opacity: 1; }
-
-/* ── Explode text panel ── */
-.explode-text-panel {
-  padding: 80px 60px;
-  position: relative;
-}
-.explode-step {
-  position: absolute;
-  opacity: 0; transform: translateY(20px);
-  transition: opacity 0.5s, transform 0.5s;
-  max-width: 420px;
-  pointer-events: none;
-}
-.explode-step.active {
-  position: relative;
-  opacity: 1; transform: translateY(0);
+/* Text panel — right-aligned so 3D chip shows on left */
+.chapter-inner {
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: 8vw;
+  padding: 40px;
+  background: rgba(2,4,8,0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   pointer-events: auto;
+  transform: translateX(40px);
+  opacity: 0;
+  transition: transform 0.7s ease, opacity 0.7s ease;
+}
+.chapter-inner.visible {
+  transform: translateX(0);
+  opacity: 1;
 }
 .es-tag {
   display: inline-block;
@@ -735,20 +424,58 @@ body:hover .cursor-ring { opacity: 1; }
   border: 1px solid rgba(0,245,212,0.3);
   border-radius: 2px;
 }
-.explode-step h2 {
+.chapter-inner h2 {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   line-height: 1.15;
   letter-spacing: 0.03em;
 }
-.explode-step p {
-  font-size: 1.05rem; line-height: 1.75;
+.chapter-inner p {
+  font-size: 1rem; line-height: 1.75;
   color: var(--text-secondary);
 }
-.explode-step strong { color: var(--accent-cyan); font-weight: 700; }
+.chapter-inner strong { color: var(--accent-cyan); font-weight: 700; }
+
+/* ════════════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════════════ */
+.btn-primary {
+  display: inline-flex; align-items: center;
+  padding: 14px 28px;
+  background: var(--accent-cyan);
+  color: var(--bg-void);
+  font-family: var(--font-display);
+  font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  transition: box-shadow var(--transition), transform var(--transition), background var(--transition);
+}
+.btn-primary:hover { box-shadow: var(--glow-cyan); transform: translateY(-2px); background: #1ffde0; }
+.btn-ghost {
+  display: inline-flex; align-items: center;
+  padding: 14px 28px;
+  border: 1px solid rgba(0,245,212,0.4);
+  color: var(--accent-cyan);
+  font-family: var(--font-display);
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.btn-ghost:hover { border-color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+
+/* All content sections sit above the fixed 3D canvas */
+.pillars-section, .cryptomaton-section, .specs-section,
+.roadmap-section, .whitepaper-section, .contact-section, .footer {
+  position: relative;
+  z-index: 2;
+  background: var(--bg-void);
+}
 
 /* ════════════════════════════════════════════════
    SECTION COMMON

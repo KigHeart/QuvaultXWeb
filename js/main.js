@@ -1,13 +1,13 @@
 /* ════════════════════════════════════════════════
-   QuVaultX-PC — Main JS
-   Loader · Cursor · Particles · Scrollytelling · Intersection Observer
+   QuVaultX-PC — Main JS  (v3 · Three.js edition)
+   Loader · Cursor · Nav · Chapter reveals · Glitch
 ════════════════════════════════════════════════ */
 
 (function () {
   "use strict";
 
   /* ── LOADER ── */
-  const loader = document.getElementById("loader");
+  const loader     = document.getElementById("loader");
   const loaderFill = document.getElementById("loaderFill");
   let progress = 0;
   const loadInterval = setInterval(() => {
@@ -15,146 +15,46 @@
     if (progress >= 100) {
       progress = 100;
       clearInterval(loadInterval);
-      setTimeout(() => loader.classList.add("done"), 400);
+      setTimeout(() => loader && loader.classList.add("done"), 500);
     }
-    loaderFill.style.width = progress + "%";
+    if (loaderFill) loaderFill.style.width = progress + "%";
   }, 120);
 
   /* ── CUSTOM CURSOR ── */
-  const cursorDot = document.getElementById("cursorDot");
+  const cursorDot  = document.getElementById("cursorDot");
   const cursorRing = document.getElementById("cursorRing");
-  let mouseX = -100, mouseY = -100;
-  let ringX = -100, ringY = -100;
+  let mouseX = -200, mouseY = -200;
+  let ringX  = -200, ringY  = -200;
 
   document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursorDot.style.left = mouseX + "px";
-    cursorDot.style.top = mouseY + "px";
+    mouseX = e.clientX; mouseY = e.clientY;
+    if (cursorDot) { cursorDot.style.left = mouseX + "px"; cursorDot.style.top = mouseY + "px"; }
   });
 
   function animateRing() {
     ringX += (mouseX - ringX) * 0.12;
     ringY += (mouseY - ringY) * 0.12;
-    cursorRing.style.left = ringX + "px";
-    cursorRing.style.top = ringY + "px";
+    if (cursorRing) { cursorRing.style.left = ringX + "px"; cursorRing.style.top = ringY + "px"; }
     requestAnimationFrame(animateRing);
   }
   animateRing();
 
-  document.querySelectorAll("a, button, .pillar-card, .cryp-node").forEach((el) => {
-    el.addEventListener("mouseenter", () => cursorRing.classList.add("hovered"));
-    el.addEventListener("mouseleave", () => cursorRing.classList.remove("hovered"));
+  document.querySelectorAll("a, button, .pillar-card, .chapter-inner").forEach((el) => {
+    el.addEventListener("mouseenter", () => cursorRing && cursorRing.classList.add("hovered"));
+    el.addEventListener("mouseleave", () => cursorRing && cursorRing.classList.remove("hovered"));
   });
 
   /* ── NAV SCROLL ── */
   const nav = document.getElementById("nav");
   window.addEventListener("scroll", () => {
-    nav.classList.toggle("scrolled", window.scrollY > 60);
-  });
+    nav && nav.classList.toggle("scrolled", window.scrollY > 60);
+  }, { passive: true });
 
   /* ── MOBILE BURGER ── */
   const navBurger = document.getElementById("navBurger");
   const mobileNav = document.getElementById("mobileNav");
-  navBurger.addEventListener("click", () => {
-    mobileNav.classList.toggle("open");
-  });
-  document.querySelectorAll(".mob-link").forEach((l) => {
-    l.addEventListener("click", () => mobileNav.classList.remove("open"));
-  });
-
-  /* ── PARTICLE CANVAS ── */
-  const canvas = document.getElementById("particleCanvas");
-  const ctx = canvas ? canvas.getContext("2d") : null;
-  let particles = [];
-
-  function resizeCanvas() {
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    canvas.width = parent.offsetWidth;
-    canvas.height = parent.offsetHeight;
-  }
-
-  class Particle {
-    constructor() { this.reset(); }
-    reset() {
-      this.x = Math.random() * canvas.width;
-      this.y = Math.random() * canvas.height;
-      this.vx = (Math.random() - 0.5) * 0.4;
-      this.vy = (Math.random() - 0.5) * 0.4;
-      this.alpha = Math.random() * 0.6 + 0.1;
-      this.size = Math.random() * 2 + 0.5;
-      this.color = Math.random() > 0.5 ? "#00f5d4" : "#7209b7";
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
-    }
-    draw() {
-      ctx.save();
-      ctx.globalAlpha = this.alpha;
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = this.color;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function initParticles() {
-    if (!canvas) return;
-    resizeCanvas();
-    particles = Array.from({ length: 80 }, () => new Particle());
-  }
-
-  function animateParticles() {
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // draw connections
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 80) {
-          ctx.save();
-          ctx.globalAlpha = (1 - dist / 80) * 0.15;
-          ctx.strokeStyle = "#00f5d4";
-          ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-    }
-    particles.forEach((p) => { p.update(); p.draw(); });
-    requestAnimationFrame(animateParticles);
-  }
-
-  initParticles();
-  animateParticles();
-  window.addEventListener("resize", () => { resizeCanvas(); particles.forEach((p) => p.reset()); });
-
-  /* ── CHIP PARALLAX ON MOUSE ── */
-  const chipUniverse = document.getElementById("chipUniverse");
-  const heroSection = document.getElementById("hero");
-  if (chipUniverse) {
-    heroSection.addEventListener("mousemove", (e) => {
-      const rect = heroSection.getBoundingClientRect();
-      const cx = rect.width / 2, cy = rect.height / 2;
-      const dx = (e.clientX - rect.left - cx) / cx;
-      const dy = (e.clientY - rect.top - cy) / cy;
-      chipUniverse.style.transform = `translate(-20%, -50%) rotateY(${dx * 8}deg) rotateX(${-dy * 5}deg)`;
-    });
-    heroSection.addEventListener("mouseleave", () => {
-      chipUniverse.style.transform = "translate(-20%, -50%) rotateY(0deg) rotateX(0deg)";
-    });
-  }
+  if (navBurger) navBurger.addEventListener("click", () => mobileNav && mobileNav.classList.toggle("open"));
+  document.querySelectorAll(".mob-link").forEach((l) => l.addEventListener("click", () => mobileNav && mobileNav.classList.remove("open")));
 
   /* ── SCROLL HINT HIDE ── */
   const scrollHint = document.getElementById("scrollHint");
@@ -162,194 +62,70 @@
     if (scrollHint) scrollHint.style.opacity = window.scrollY > 80 ? "0" : "1";
   }, { passive: true });
 
-  /* ══════════════════════════════════════
-     SCROLLYTELLING — CHIP PHOTO ANNOTATIONS
-  ══════════════════════════════════════ */
-  const explodeSection = document.getElementById("explodeSection");
-  const explodeSteps   = document.querySelectorAll(".explode-step");
-  const stepAnns       = document.querySelectorAll(".step-ann");
-  const annScope       = document.getElementById("annScope");
-  const chipStoryImg   = document.getElementById("chipStoryImg");
-
-  // Map each step to which data-steps annotations to show
-  // and what filter to apply to the chip photo
-  const stepFilters = [
-    "brightness(0.85) saturate(0.75) contrast(1.15)",
-    "brightness(1.0) saturate(0.9) contrast(1.2)",
-    "brightness(1.05) saturate(1.1) contrast(1.15)",
-    "brightness(0.9) saturate(0.8) contrast(1.3) hue-rotate(-5deg)",
-    "brightness(1.0) saturate(1.3) contrast(1.1) hue-rotate(8deg)",
-  ];
-
-  // Scope circle positions per step [top%, left%, size px]
-  const scopePositions = [
-    [50, 50, 300],
-    [48, 50, 140],
-    [50, 40, 200],
-    [18, 72, 90],
-    [88, 50, 180],
-  ];
-
-  function getExplodeProgress() {
-    if (!explodeSection) return 0;
-    const rect = explodeSection.getBoundingClientRect();
-    const sectionH = explodeSection.scrollHeight - window.innerHeight;
-    const scrolled = -rect.top;
-    return Math.max(0, Math.min(1, scrolled / sectionH));
-  }
-
-  function getActiveStep(progress) {
-    return Math.min(4, Math.floor(progress * 5));
-  }
-
-  function updateExplode() {
-    const progress   = getExplodeProgress();
-    const activeStep = getActiveStep(progress);
-
-    // Update step text panels
-    explodeSteps.forEach((step, i) => {
-      step.classList.toggle("active", i === activeStep);
-    });
-
-    // Update annotation visibility
-    stepAnns.forEach((ann) => {
-      const stepsAttr = ann.dataset.steps || "";
-      const steps = stepsAttr.split(",").map(Number);
-      ann.classList.toggle("ann-active", steps.includes(activeStep));
-    });
-
-    // Update chip photo filter
-    if (chipStoryImg) {
-      chipStoryImg.style.filter = stepFilters[activeStep];
-    }
-
-    // Update scope circle
-    if (annScope) {
-      const [top, left, size] = scopePositions[activeStep];
-      annScope.style.top    = top + "%";
-      annScope.style.left   = left + "%";
-      annScope.style.width  = size + "px";
-      annScope.style.height = size + "px";
-    }
-  }
-
-  /* ── INTERSECTION OBSERVER FOR REVEALS ── */
-  const revealEls = document.querySelectorAll(
-    ".pillar-card, .cg-item, .rt-item, .contact-card, .wp-card, .h-stat, .cryp-node"
-  );
-  revealEls.forEach((el) => el.classList.add("reveal"));
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-        }
-      });
-    },
-    { threshold: 0.12 }
-  );
-  revealEls.forEach((el) => observer.observe(el));
-
-  /* ── STAGGERED CARD REVEALS ── */
-  document.querySelectorAll(".pillars-grid, .cryp-guarantees, .contact-grid").forEach((grid) => {
-    const children = grid.children;
-    Array.from(children).forEach((child, i) => {
-      child.style.transitionDelay = `${i * 0.08}s`;
-    });
-  });
-
-  /* ── SCROLL LOOP ── */
-  let ticking = false;
-  window.addEventListener("scroll", () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        updateExplode();
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
-
-  updateExplode(); // initial call
-
-  /* ── CHIP PHOTO CLICK EFFECT ── */
-  const chipPhoto = document.getElementById("chipPhoto");
-  if (chipPhoto) {
-    let clickCount = 0;
-    const filters = [
-      "brightness(0.9) saturate(0.8) contrast(1.1)",
-      "brightness(1.1) saturate(1.4) contrast(1.2) hue-rotate(10deg)",
-      "brightness(1.2) saturate(0.3) contrast(1.4)",
-      "brightness(0.85) saturate(2) contrast(1.3) hue-rotate(180deg)",
-      "brightness(0.9) saturate(0.8) contrast(1.1)",
-    ];
-    chipPhoto.addEventListener("click", () => {
-      clickCount = (clickCount + 1) % filters.length;
-      chipPhoto.style.filter = filters[clickCount];
-      // Pulse glow
-      const frame = chipPhoto.closest(".chip-frame");
-      if (frame) {
-        frame.style.boxShadow = "0 0 40px rgba(0,245,212,0.5)";
-        setTimeout(() => (frame.style.boxShadow = ""), 600);
-      }
-    });
-    chipPhoto.style.cursor = "crosshair";
-    chipPhoto.title = "Click to scan";
-  }
-
-  /* ── SMOOTH ACTIVE NAV ── */
-  const navLinks = document.querySelectorAll(".nav-links a");
-  const sections = document.querySelectorAll("section[id]");
-  window.addEventListener("scroll", () => {
-    let current = "";
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop - 100;
-      if (window.scrollY >= sectionTop) current = section.getAttribute("id");
-    });
-    navLinks.forEach((link) => {
-      link.style.color = link.getAttribute("href") === `#${current}` ? "var(--accent-cyan)" : "";
-    });
-  }, { passive: true });
-
-  /* ── GLITCH EFFECT ON LOGO ── */
-  const navLogo = document.querySelector(".nav-logo-text");
-  if (navLogo) {
-    setInterval(() => {
-      if (Math.random() > 0.92) {
-        navLogo.style.textShadow = "2px 0 var(--accent-pink), -2px 0 var(--accent-cyan)";
-        navLogo.style.transform = "skewX(-2deg)";
-        setTimeout(() => {
-          navLogo.style.textShadow = "";
-          navLogo.style.transform = "";
-        }, 80);
-      }
-    }, 2000);
-  }
-
   /* ── HERO TITLE TYPEWRITER ── */
-  const heroSub = document.querySelector(".hero-title-sub");
+  const heroSub = document.getElementById("heroSubTitle");
   if (heroSub) {
     const text = heroSub.textContent;
     heroSub.textContent = "";
     let i = 0;
     setTimeout(() => {
-      const typeInterval = setInterval(() => {
-        heroSub.textContent += text[i];
-        i++;
-        if (i >= text.length) clearInterval(typeInterval);
-      }, 50);
-    }, 1400);
+      const iv = setInterval(() => {
+        heroSub.textContent += text[i++];
+        if (i >= text.length) clearInterval(iv);
+      }, 55);
+    }, 1200);
   }
 
-  /* ── PCB TRACES ANIMATION ── */
-  const pcbTraces = document.querySelector(".pcb-traces");
-  if (pcbTraces) {
-    let angle = 0;
+  /* ── CHAPTER INTERSECTION REVEALS ── */
+  const chapterInners = document.querySelectorAll(".chapter-inner");
+  const chapterObs = new IntersectionObserver(
+    (entries) => { entries.forEach((e) => e.target.classList.toggle("visible", e.isIntersecting)); },
+    { threshold: 0.25 }
+  );
+  chapterInners.forEach((el) => chapterObs.observe(el));
+
+  /* ── INTERSECTION OBSERVER FOR REVEAL CARDS ── */
+  const revealEls = document.querySelectorAll(
+    ".pillar-card, .cg-item, .rt-item, .contact-card, .wp-card, .cryp-node"
+  );
+  revealEls.forEach((el) => {
+    el.style.opacity = "0"; el.style.transform = "translateY(28px)";
+    el.style.transition = "opacity 0.65s ease, transform 0.65s ease";
+  });
+  const revealObs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.style.opacity = "1"; e.target.style.transform = "translateY(0)"; }
+      });
+    },
+    { threshold: 0.12 }
+  );
+  revealEls.forEach((el) => revealObs.observe(el));
+
+  /* ── STAGGERED DELAYS ── */
+  document.querySelectorAll(".pillars-grid, .cryp-guarantees, .contact-grid").forEach((grid) => {
+    Array.from(grid.children).forEach((child, i) => { child.style.transitionDelay = `${i * 0.08}s`; });
+  });
+
+  /* ── GLITCH on nav logo ── */
+  const navLogo = document.querySelector(".nav-logo-text");
+  if (navLogo) {
     setInterval(() => {
-      angle += 0.5;
-      pcbTraces.style.transform = `rotate(${Math.sin(angle * 0.02) * 0.3}deg)`;
-    }, 50);
+      if (Math.random() > 0.93) {
+        navLogo.style.textShadow = "2px 0 var(--accent-pink), -2px 0 var(--accent-cyan)";
+        navLogo.style.transform  = "skewX(-2deg)";
+        setTimeout(() => { navLogo.style.textShadow = ""; navLogo.style.transform = ""; }, 90);
+      }
+    }, 2200);
   }
+
+  /* ── ACTIVE NAV HIGHLIGHT ── */
+  const navLinks = document.querySelectorAll(".nav-links a");
+  const sections = document.querySelectorAll("section[id]");
+  window.addEventListener("scroll", () => {
+    let current = "";
+    sections.forEach((s) => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+    navLinks.forEach((l) => { l.style.color = l.getAttribute("href") === `#${current}` ? "var(--accent-cyan)" : ""; });
+  }, { passive: true });
 
 })();
